@@ -16,14 +16,12 @@
 [context.deployment-preview]
   command = "npm install --legacy-peer-deps && npm run build:prod"
   publish = "dist"
-command = "npm install --legacy-peer-deps && npm run build:prod"
-publish = "dist"
 
 [context.branch-deploy]
-command = "npm install --legacy-peer-deps && npm run build"
-base = "/"
-publish = "dist"
+  command = "npm install --legacy-peer-deps && npm run build"
+  publish = "dist"
+  base = "/"
 
 [dev]
-command = "npm run dev"
-port = 5173
+  command = "npm run dev"
+  port = 5173
