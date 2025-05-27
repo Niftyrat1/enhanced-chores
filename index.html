@@ -230,53 +230,59 @@
                         <button id="themeToggle" class="theme-toggle px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">
                             <i class="fas fa-moon"></i>
                         </button>
-                <div class="flex space-x-4">
-                    <button id="themeToggle" class="theme-toggle px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Search and Filters -->
-            <div class="mt-6">
-                <div class="flex space-x-4">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search chores..." 
-                               class="w-64 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
                     </div>
-                    <select id="categoryFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                        <option value="">All Categories</option>
-                        <option value="kitchen">Kitchen <i class="fas fa-utensils text-green-500"></i></option>
-                        <option value="bathroom">Bathroom <i class="fas fa-shower text-blue-500"></i></option>
-                        <option value="bedroom">Bedroom <i class="fas fa-bed text-purple-500"></i></option>
-                        <option value="outdoor">Outdoor <i class="fas fa-tree text-yellow-500"></i></option>
-                        <option value="pet-care">Pet Care <i class="fas fa-paw text-pink-500"></i></option>
-                    </select>
-                    <select id="statusFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                        <option value="">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
-                        <option value="overdue">Overdue</option>
-                    </select>
                 </div>
-            </div>
-        </header>
 
-        <!-- Main Content -->
-        <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Points Dashboard -->
-            <section class="bg-gray-800 rounded-lg p-6">
-                <h2 class="text-2xl font-bold mb-4">🎯 Points Dashboard</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-gray-700 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold mb-2">Today's Points</h3>
-                        <div id="todayPoints" class="text-3xl font-bold text-primary">0</div>
-                        <div class="w-full bg-gray-600 rounded-full h-2.5">
-                            <div id="todayProgress" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                <!-- Search and Filters -->
+                <div class="mt-6">
+                    <div class="flex space-x-4">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search chores..." 
+                                   class="w-64 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                            <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                        </div>
+                        <select id="categoryFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                            <option value="">All Categories</option>
+                            <option value="kitchen">Kitchen <i class="fas fa-utensils text-green-500"></i></option>
+                            <option value="bathroom">Bathroom <i class="fas fa-shower text-blue-500"></i></option>
+                            <option value="bedroom">Bedroom <i class="fas fa-bed text-purple-500"></i></option>
+                            <option value="outdoor">Outdoor <i class="fas fa-tree text-yellow-500"></i></option>
+                            <option value="pet-care">Pet Care <i class="fas fa-paw text-pink-500"></i></option>
+                        </select>
+                        <select id="statusFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Points Dashboard -->
+                <section class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4">🎯 Points Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2">Today's Points</h3>
+                            <div id="todayPoints" class="text-3xl font-bold text-primary">0</div>
+                            <div class="w-full bg-gray-600 rounded-full h-2.5">
+                                <div id="todayProgress" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
+
+                <!-- Chores List -->
+                <section class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4">📋 Chores List</h2>
+                    <div class="chores-list">
+                        <!-- Chores will be populated here -->
+                    </div>
+                </section>
+
                 <!-- Add Chore Modal -->
                 <div id="addChoreModal" class="modal-overlay hidden">
                     <div class="modal-content">
@@ -371,117 +377,46 @@
                     <i class="fas fa-plus mr-2"></i>
                     Add Chore
                 </button>
-                <button onclick="addChore()" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white">
-                    Add Chore
-                </button>
-                <div class="skip-options" style="display: none;">
-                    <h3>Skip/Postpone Options</h3>
-                    <div class="form-group">
-                        <label>Reason for Skipping</label>
-                        <select id="skipReason" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                            <option value="busy">Too Busy</option>
-                            <option value="weather">Bad Weather</option>
-                            <option value="sick">Illness</option>
-                            <option value="travel">Traveling</option>
-                            <option value="other">Other</option>
-                        </select>
+                <!-- Skip/Postpone Modal -->
+                <div id="skipChoreModal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">⏰ Skip/Postpone Chore</h3>
+                            <button class="modal-close" onclick="closeModal('skipChoreModal')">×</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="form-group">
+                                <label class="form-label">Reason for Skipping</label>
+                                <select id="skipReason" class="form-select">
+                                    <option value="busy">Too Busy</option>
+                                    <option value="weather">Bad Weather</option>
+                                    <option value="sick">Illness</option>
+                                    <option value="travel">Traveling</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Postpone Until</label>
+                                <input type="datetime-local" id="postponeUntil" class="form-input">
+                            </div>
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('skipChoreModal')">
+                                    Cancel
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="skipChore()">
+                                    Skip Chore
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Postpone Until</label>
-                        <input type="datetime-local" id="postponeUntil" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                    </div>
-                    <button onclick="skipChore()" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">
-                        Skip Chore
-                    </button>
+                </div>
                     <button onclick="postponeChore()" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">
                         Postpone Chore
                     </button>
-                </div>
-            </div>
-
-            <!-- Chores list -->
-            <div id="choresList" class="chores-list"></div>
+            </main>
         </div>
-
-        <!-- Points and Rewards tab -->
-        <div id="points-tab" class="tab-content">
-            <div class="points-dashboard">
-                <div class="points-section">
-                    <h3>Today's Points</h3>
-                    <div class="points-display" id="todayPoints">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="todayProgress"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="points-section">
-                    <h3>Weekly Points</h3>
-                    <div class="points-display" id="weeklyPoints">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="weeklyProgress"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="points-section">
-                    <h3>Monthly Points</h3>
-                    <div class="points-display" id="monthlyPoints">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="monthlyProgress"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="achievements-section">
-                <h2>Achievements</h2>
-                <div class="achievements-grid" id="achievements"></div>
-            </div>
-
-            <div class="challenges-section">
-                <h2>Family Challenges</h2>
-                <div class="challenges-grid" id="challenges"></div>
-            </div>
-
-            <div id="badges" class="badges-section">
-                <h2>Your Badges</h2>
-            </div>
-        </div>
-
-        <!-- Leaderboard tab -->
-        <div id="leaderboard-tab" class="tab-content">
-            <div class="leaderboard-filters">
-                <select id="leaderboardPeriod">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="all-time">All Time</option>
-                </select>
-            </div>
-            <div id="leaderboard" class="leaderboard"></div>
-        </div>
-
-        <!-- Analytics tab -->
-        <div id="analytics-tab" class="tab-content">
-            <div class="chart-container">
-                <canvas id="completionChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="timeSpentChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="categoryDistributionChart"></canvas>
-            </div>
-        </div>
-
-        <!-- History tab -->
-        <div id="history-tab" class="tab-content">
-            <div class="history-filters">
-                <select id="historyPeriod">
-                    <option value="month">This Month</option>
-                    <option value="year">This Year</option>
+    </body>
+</html>
                     <option value="all">All Time</option>
                 </select>
             </div>

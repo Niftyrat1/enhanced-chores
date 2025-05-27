@@ -1,11 +1,6 @@
 // Import required packages
 import fuzzySearch from 'fuzzy-search';
-
-// Helper function for fuzzy search
-function searchChores(query, chores) {
-    const searcher = new fuzzySearch(query, ['title', 'category']);
-    return searcher.search(chores);
-}
+import { createClient } from '@supabase/supabase-js';
 
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
@@ -22,25 +17,6 @@ const ACHIEVEMENT_THRESHOLDS = {
     categories: [5, 10, 20, 50],
     challenges: [1, 3, 5, 10]
 };
-
-// Export functions and configurations
-export {
-    searchChores,
-    ACHIEVEMENT_THRESHOLDS
-};
-
-// Environment Configuration
-const ENV = {
-    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL',
-    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_KEY',
-    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
-};
-
-// Import Supabase client
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
 
 // Points System Configuration
 const POINTS_SYSTEM = {
@@ -68,6 +44,16 @@ const POINTS_SYSTEM = {
         night: 1.5
     }
 };
+
+// Environment Configuration
+const ENV = {
+    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL',
+    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_KEY',
+    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
+};
+
+// Initialize Supabase client
+const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
 
 // Calculate chore points based on various factors
 function calculateChorePoints(chore) {
@@ -358,28 +344,6 @@ async function initializeSupabase() {
     }
 }
 
-// Populate assignee dropdown
-async function populateAssignees() {
-    try {
-        const { data: users, error } = await supabase
-            .from('users')
-            .select('id, name')
-            .order('name');
-
-        if (error) throw error;
-
-        const assigneeSelect = document.getElementById('choreAssignee');
-        users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.id;
-            option.textContent = user.name;
-            assigneeSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error populating assignees:', error);
-    }
-}
-
 // Update chore list
 async function updateChoreList() {
     try {
@@ -451,10 +415,28 @@ async function updatePoints() {
             .single();
 
         if (error) throw error;
+        if (!stats) throw new Error('No stats data returned from database');
 
-        document.getElementById('todayPoints').textContent = stats.today_points;
-        document.getElementById('weeklyPoints').textContent = stats.weekly_points;
-        document.getElementById('monthlyPoints').textContent = stats.monthly_points;
+        // Type check the data
+        if (typeof stats.today_points !== 'number' ||
+            typeof stats.weekly_points !== 'number' ||
+            typeof stats.monthly_points !== 'number' ||
+            typeof stats.total_points !== 'number') {
+            throw new Error('Invalid points data type');
+        }
+
+        const pointsDisplay = document.getElementById('pointsDisplay');
+        if (pointsDisplay) {
+            pointsDisplay.textContent = stats.total_points;
+        }
+
+        const todayPoints = document.getElementById('todayPoints');
+        const weeklyPoints = document.getElementById('weeklyPoints');
+        const monthlyPoints = document.getElementById('monthlyPoints');
+
+        if (todayPoints) todayPoints.textContent = stats.today_points;
+        if (weeklyPoints) weeklyPoints.textContent = stats.weekly_points;
+        if (monthlyPoints) monthlyPoints.textContent = stats.monthly_points;
 
         // Update progress bars
         document.getElementById('todayProgress').style.width = `${(stats.today_points / 100) * 100}%`;
