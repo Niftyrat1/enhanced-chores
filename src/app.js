@@ -167,111 +167,61 @@ async function addChore() {
     }
 }
 
-// Function to update chore list
-async function updateChoreList() {
+// Update chore list
+async function updateChoreList(categoryFilter, statusFilter, searchInput) {
     try {
-        // Get filter elements
-        const categoryFilter = document.getElementById('categoryFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const searchInput = document.getElementById('searchInput');
-
-        if (!categoryFilter || !statusFilter || !searchInput) {
-            throw new Error('Required DOM elements not found');
-        }
-
-        // Validate filter values
-        const category = categoryFilter.value.trim();
-        const status = statusFilter.value.trim();
-        const search = searchInput.value.trim().toLowerCase();
-
-        // Build query
-        let query = supabase
+        const query = supabase
             .from('chores')
             .select('*')
             .order('priority', { ascending: false })
             .order('due_date');
 
-        // Apply filters
-        if (category) {
-            query = query.eq('category', category);
+        if (categoryFilter) {
+            query = query.eq('category', categoryFilter);
         }
 
-        if (status) {
-            query = query.eq('status', status);
+        if (statusFilter) {
+            query = query.eq('status', statusFilter);
         }
 
-        if (search) {
-            query = query.ilike('title', `%${search}%`);
+        if (searchInput) {
+            query = query.ilike('title', `%${searchInput}%`);
         }
 
-        // Execute query
         const { data: chores, error } = await query;
 
         if (error) throw error;
 
-        // Update UI
         const choresContainer = document.querySelector('.chores-list');
-        if (!choresContainer) {
-            throw new Error('Chores container not found');
-        }
-
         choresContainer.innerHTML = '';
 
-        // Create chore items
         chores.forEach(chore => {
             const choreItem = document.createElement('div');
-            choreItem.className = 'chore-item bg-gray-700 rounded-lg p-4 mb-4';
-            choreItem.setAttribute('role', 'listitem');
-            choreItem.setAttribute('aria-label', `Chore: ${chore.title}`);
-
+            choreItem.className = 'chore-item bg-gray-800 rounded-lg p-4';
             choreItem.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <h3 class="text-lg font-semibold" role="heading" aria-level="3">${chore.title}</h3>
-                        <div class="text-sm text-gray-400">
-                            <span class="category-${chore.category}" role="status">${chore.category}</span>
-                            • ${new Date(chore.due_date).toLocaleDateString()}
-                            • ${chore.points} points
-                            • ${chore.priority}
-                            • ${chore.frequency}
-                        </div>
-                        ${chore.notes ? `<p class="mt-2 text-gray-400" role="note">${chore.notes}</p>` : ''}
-                    </div>
-                    <div class="flex space-x-2">
-                        <button 
-                            onclick="markChoreComplete(${chore.id})" 
-                            class="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
-                            role="button"
-                            aria-label="Mark chore as complete"
-                        >
-                            Complete
-                        </button>
-                        <button 
-                            onclick="skipChore(${chore.id})" 
-                            class="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white"
-                            role="button"
-                            aria-label="Skip chore"
-                        >
-                            Skip
-                        </button>
-                        <button 
-                            onclick="postponeChore(${chore.id})" 
-                            class="px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 text-white"
-                            role="button"
-                            aria-label="Postpone chore"
-                        >
-                            Postpone
-                        </button>
+                <div class="chore-details">
+                    <h3 class="text-lg font-semibold">${chore.title}</h3>
+                    <div class="chore-meta text-sm text-gray-400">
+                        <span class="category-${chore.category}">${chore.category}</span>
+                        <span>•</span>
+                        <span>${chore.priority}</span>
+                        <span>•</span>
+                        <span>${chore.frequency}</span>
                     </div>
                 </div>
+                <div class="chore-actions">
+                    <button onclick="markComplete(${chore.id})" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="skipChore(${chore.id})" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             `;
-
             choresContainer.appendChild(choreItem);
         });
     } catch (error) {
         console.error('Error updating chore list:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-        alert(`Error updating chore list: ${errorMessage}`);
     }
 }
 
@@ -452,11 +402,15 @@ async function setupRealtimeSubscriptions() {
                 event: '*',
                 schema: 'public',
                 table: 'chores',
-            }, (payload) => {
+            }, async (payload) => {
                 console.log('Change received:', payload);
                 const categoryFilter = document.getElementById('categoryFilter').value;
                 const statusFilter = document.getElementById('statusFilter').value;
                 const searchInput = document.getElementById('searchInput').value.toLowerCase();
+                await supabase
+                .from('points_stats')
+                .select('*')
+                .single();
                 updateChoreList(categoryFilter, statusFilter, searchInput);
             })
             .subscribe();
