@@ -1,5 +1,5 @@
 // Import required packages
-import fuzzy from 'fuzzy.js';
+import fuzzysearch from 'fuzzysearch-plus';
 
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
