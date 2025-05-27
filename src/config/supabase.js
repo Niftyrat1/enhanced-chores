@@ -11,5 +11,17 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-// Initialize Supabase client
-export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+// Initialize Supabase client with proper CORS handling
+export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
+    auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+    },
+    global: {
+        headers: {
+            'x-requested-with': 'XMLHttpRequest'
+        },
+        fetch: (...args) => fetch(...args)
+    }
+});
