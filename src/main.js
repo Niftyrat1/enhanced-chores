@@ -34,32 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Initialize theme
-function initializeTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    if (!themeToggle) {
-        console.error('Theme toggle button not found');
-        return;
-    }
-
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.body.classList.toggle('dark', savedTheme === 'dark');
-        document.body.classList.toggle('light', savedTheme === 'light');
-        themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    }
-
-    // Add theme toggle event listener
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        document.body.classList.toggle('light');
-        const isDark = document.body.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    });
-}
-
 // Initialize UI components
 async function initializeUI() {
     try {
