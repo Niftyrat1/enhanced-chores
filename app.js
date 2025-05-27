@@ -1,5 +1,11 @@
 // Import required packages
-import fuzzysearch from 'fuzzysearch-plus';
+import fuzzySearch from 'fuzzy-search';
+
+// Helper function for fuzzy search
+function searchChores(query, chores) {
+    const searcher = new fuzzySearch(query, ['title', 'category']);
+    return searcher.search(chores);
+}
 
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
