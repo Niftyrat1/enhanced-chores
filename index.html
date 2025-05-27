@@ -1,33 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Household Chore Tracker</title>
-    <!-- Add Chart.js for analytics -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Add Fuzzysearch for search functionality -->
-    <script src="https://unpkg.com/fuzzysearch@1.0.4"></script>
-    <!-- Add Moment.js for date/time handling -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <!-- Add Font Awesome for icons -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom styles -->
     <style>
-        /* Add new styles for enhanced features */
+        /* Custom theme colors */
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --background: #f8f9fa;
-            --surface: rgba(255, 255, 255, 0.95);
-            --text-primary: #333;
-            --text-secondary: #666;
-            --border-color: #e0e0e0;
-            --success-color: #4CAF50;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            --primary: #667eea;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #f44336;
+        }
+
+        /* Dark theme overrides */
+        .dark {
+            --primary: #667eea;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #f44336;
         }
 
         /* Category colors */
@@ -36,179 +34,47 @@
         .category-bedroom { color: #9C27B0; }
         .category-outdoor { color: #FF9800; }
         .category-pet-care { color: #E91E63; }
-
-        /* Achievement badges */
-        .achievement-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            color: #333;
-            font-weight: bold;
-            margin: 2px;
-        }
-
-        /* Progress bars */
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #f3f3f3;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary-gradient);
-            transition: width 0.3s ease;
-        }
-
-        /* Analytics charts */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            margin: 20px 0;
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .chore-item {
-                flex-direction: column;
-            }
-            .chore-actions {
-                width: 100%;
-                margin-top: 10px;
-            }
-        }
-
-        /* Dark theme support */
-        [data-theme="dark"] {
-            --primary-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-            --background: #1a202c;
-            --surface: rgba(45, 55, 72, 0.95);
-            --text-primary: #f7fafc;
-            --text-secondary: #cbd5e0;
-            --border-color: #4a5568;
-            --success-color: #48bb78;
-            --danger-color: #f56565;
-            --warning-color: #ed8936;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
     </style>
 </head>
-<body data-theme="light">
-    <div class="container">
-        <!-- New header with search and filters -->
-        <div class="header">
-            <h1>🏠 Enhanced Chore Tracker</h1>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search chores...">
-                <i class="fas fa-search"></i>
-            </div>
-            <!-- Points & Rewards Dashboard -->
-            <div class="points-dashboard">
-                <div class="points-section">
-                    <h3>Today's Points</h3>
-                    <div id="todayPoints" class="points-display">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div id="todayProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="points-target">Goal: 100 points</div>
-                    </div>
-                </div>
-                <div class="points-section">
-                    <h3>Weekly Points</h3>
-                    <div id="weeklyPoints" class="points-display">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div id="weeklyProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="points-target">Goal: 500 points</div>
-                    </div>
-                </div>
-                <div class="points-section">
-                    <h3>Monthly Points</h3>
-                    <div id="monthlyPoints" class="points-display">0</div>
-                    <div class="points-progress">
-                        <div class="progress-bar">
-                            <div id="monthlyProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="points-target">Goal: 2000 points</div>
-                    </div>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-4xl font-bold text-primary">🏠 Enhanced Chore Tracker</h1>
+                <div class="flex space-x-4">
+                    <button class="theme-toggle px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+                        <span id="themeIcon">🌙</span>
+                        <span id="themeText">Dark Mode</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="achievements-section">
-                <h3>Achievements</h3>
-                <div id="achievements" class="achievements-grid">
-                    <!-- Achievements will be populated dynamically -->
-                </div>
-            </div>
-
-            <div class="challenges-section">
-                <h3>Family Challenges</h3>
-                <div id="challenges" class="challenges-grid">
-                    <!-- Challenges will be populated dynamically -->
-                </div>
-            </div>
-
-            <div class="filters">
-                <div class="filter-group">
-                    <label>Category</label>
-                    <select id="categoryFilter">
+            <!-- Search and Filters -->
+            <div class="mt-6">
+                <div class="flex space-x-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search chores..." 
+                               class="w-64 px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                    </div>
+                    <select id="categoryFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="">All Categories</option>
-                        <option value="kitchen">Kitchen <i class="fas fa-utensils category-icon"></i></option>
-                        <option value="bathroom">Bathroom <i class="fas fa-shower category-icon"></i></option>
-                        <option value="bedroom">Bedroom <i class="fas fa-bed category-icon"></i></option>
-                        <option value="outdoor">Outdoor <i class="fas fa-tree category-icon"></i></option>
-                        <option value="pet-care">Pet Care <i class="fas fa-paw category-icon"></i></option>
+                        <option value="kitchen">Kitchen <i class="fas fa-utensils text-green-500"></i></option>
+                        <option value="bathroom">Bathroom <i class="fas fa-shower text-blue-500"></i></option>
+                        <option value="bedroom">Bedroom <i class="fas fa-bed text-purple-500"></i></option>
+                        <option value="outdoor">Outdoor <i class="fas fa-tree text-yellow-500"></i></option>
+                        <option value="pet-care">Pet Care <i class="fas fa-paw text-pink-500"></i></option>
                     </select>
-                </div>
-                <div class="filter-group">
-                    <label>Assignee</label>
-                    <select id="assigneeFilter">
-                        <option value="">All Assignees</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Frequency</label>
-                    <select id="frequencyFilter">
-                        <option value="">All Frequencies</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="bi-weekly">Bi-weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="once">Once</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Status</label>
-                    <select id="statusFilter">
+                    <select id="statusFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="completed">Completed</option>
                         <option value="overdue">Overdue</option>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <label>Weather</label>
-                    <select id="weatherFilter">
-                        <option value="">All Weather</option>
-                        <option value="sunny">Sunny</option>
-                        <option value="rainy">Rainy</option>
-                        <option value="cloudy">Cloudy</option>
-                        <option value="snowy">Snowy</option>
-                    </select>
-                </div>
             </div>
-            <div id="weatherSuggestions" class="weather-suggestions"></div>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span id="themeIcon">🌙</span>
-                <span id="themeText">Dark Mode</span>
-            </button>
-        </div>
+        </header>
 
         <!-- New tab structure -->
         <div class="tabs">
@@ -227,11 +93,11 @@
                 <h3>➕ Add New Chore</h3>
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" id="choreName">
+                    <input type="text" id="choreName" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <select id="choreCategory">
+                    <select id="choreCategory" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="kitchen">Kitchen</option>
                         <option value="bathroom">Bathroom</option>
                         <option value="bedroom">Bedroom</option>
@@ -241,11 +107,11 @@
                 </div>
                 <div class="form-group">
                     <label>Assignee</label>
-                    <select id="choreAssignee"></select>
+                    <select id="choreAssignee" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary"></select>
                 </div>
                 <div class="form-group">
                     <label>Frequency</label>
-                    <select id="choreFrequency">
+                    <select id="choreFrequency" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="bi-weekly">Bi-weekly</option>
@@ -255,7 +121,7 @@
                 </div>
                 <div class="form-group">
                     <label>Difficulty</label>
-                    <select id="choreDifficulty">
+                    <select id="choreDifficulty" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="easy">Easy (1x)</option>
                         <option value="medium">Medium (1.5x)</option>
                         <option value="hard">Hard (2x)</option>
@@ -263,11 +129,11 @@
                 </div>
                 <div class="form-group">
                     <label>Due Date & Time</label>
-                    <input type="datetime-local" id="choreDueDate">
+                    <input type="datetime-local" id="choreDueDate" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                 </div>
                 <div class="form-group">
                     <label>Seasonal Schedule</label>
-                    <select id="seasonalSchedule">
+                    <select id="seasonalSchedule" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="">None</option>
                         <option value="spring">Spring Only</option>
                         <option value="summer">Summer Only</option>
@@ -278,7 +144,7 @@
                 </div>
                 <div class="form-group">
                     <label>Time of Day</label>
-                    <select id="timeOfDay">
+                    <select id="timeOfDay" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="">Any Time</option>
                         <option value="morning">Morning (6-12 AM)</option>
                         <option value="afternoon">Afternoon (12-6 PM)</option>
@@ -288,7 +154,7 @@
                 </div>
                 <div class="form-group">
                     <label>Priority</label>
-                    <select id="chorePriority">
+                    <select id="chorePriority" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
@@ -297,11 +163,11 @@
                 </div>
                 <div class="form-group">
                     <label>Required Tools</label>
-                    <input type="text" id="requiredTools" placeholder="e.g., vacuum, mop, etc.">
+                    <input type="text" id="requiredTools" placeholder="e.g., vacuum, mop, etc." class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                 </div>
                 <div class="form-group">
                     <label>Notes</label>
-                    <textarea id="choreNotes"></textarea>
+                    <textarea id="choreNotes" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Reminders</label>
@@ -317,12 +183,14 @@
                         </label>
                     </div>
                 </div>
-                <button onclick="addChore()">Add Chore</button>
+                <button onclick="addChore()" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white">
+                    Add Chore
+                </button>
                 <div class="skip-options" style="display: none;">
                     <h3>Skip/Postpone Options</h3>
                     <div class="form-group">
                         <label>Reason for Skipping</label>
-                        <select id="skipReason">
+                        <select id="skipReason" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                             <option value="busy">Too Busy</option>
                             <option value="weather">Bad Weather</option>
                             <option value="sick">Illness</option>
@@ -332,10 +200,14 @@
                     </div>
                     <div class="form-group">
                         <label>Postpone Until</label>
-                        <input type="datetime-local" id="postponeUntil">
+                        <input type="datetime-local" id="postponeUntil" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                     </div>
-                    <button onclick="skipChore()">Skip Chore</button>
-                    <button onclick="postponeChore()">Postpone Chore</button>
+                    <button onclick="skipChore()" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">
+                        Skip Chore
+                    </button>
+                    <button onclick="postponeChore()" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">
+                        Postpone Chore
+                    </button>
                 </div>
             </div>
 
