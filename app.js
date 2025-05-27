@@ -364,11 +364,38 @@ function closeModal(modalId) {
 
 // Theme toggle
 function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const icon = document.querySelector('.theme-toggle i');
-    icon.classList.toggle('fa-moon');
-    icon.classList.toggle('fa-sun');
+    const body = document.body;
+    const icon = document.getElementById('themeToggle').querySelector('i');
+    
+    // Toggle dark class
+    body.classList.toggle('dark');
+    
+    // Toggle icon
+    if (icon.classList.contains('fa-moon')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+    } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+    }
+
+    // Save preference to localStorage
+    const isDark = body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Check saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('themeToggle').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+    }
+
+    // Set up theme toggle event listener
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+});
 
 // Form submission
 async function addChore() {
