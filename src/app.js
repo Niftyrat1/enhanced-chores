@@ -454,35 +454,23 @@ async function setupRealtimeSubscriptions() {
                 table: 'chores',
             }, (payload) => {
                 console.log('Change received:', payload);
-                updateChoreList();
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                const searchInput = document.getElementById('searchInput').value.toLowerCase();
+                updateChoreList(categoryFilter, statusFilter, searchInput);
             })
             .subscribe();
 
         // Listen for points changes
-        supabase
-            .channel('points-changes')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'points',
-            }, (payload) => {
-                console.log('Points change received:', payload);
-                updatePoints();
-            })
-            .subscribe();
     } catch (error) {
         console.error('Error setting up realtime subscriptions:', error);
     }
 }
 
 // Update chore list
-async function updateChoreList() {
+async function updateChoreList(categoryFilter, statusFilter, searchInput) {
     try {
-        const categoryFilter = document.getElementById('categoryFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
-        const searchInput = document.getElementById('searchInput').value.toLowerCase();
-
-        let query = supabase
+        const query = supabase
             .from('chores')
             .select('*')
             .order('priority', { ascending: false })
