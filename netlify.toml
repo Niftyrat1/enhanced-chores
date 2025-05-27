@@ -10,10 +10,15 @@
   status = 200
   force = true
 
-[[headers]]
+[headers]
   for = "/"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;"
 
 [cache]
   directories = ["node_modules", ".vite", "dist"]
@@ -21,33 +26,33 @@
 
 [context.production]
   command = "npm run build:prod"
+  publish = "dist"
   environment = {
-    SUPABASE_URL = "${SUPABASE_URL}",
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}",
-    WEATHER_API_KEY = "${WEATHER_API_KEY}",
+    SUPABASE_URL = "${SUPABASE_URL}"
+    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+    WEATHER_API_KEY = "${WEATHER_API_KEY}"
     NODE_ENV = "production"
   }
-  publish = "dist"
 
 [context.deployment-preview]
   command = "npm run build:prod"
+  publish = "dist"
   environment = {
-    SUPABASE_URL = "${SUPABASE_URL}",
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}",
-    WEATHER_API_KEY = "${WEATHER_API_KEY}",
+    SUPABASE_URL = "${SUPABASE_URL}"
+    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+    WEATHER_API_KEY = "${WEATHER_API_KEY}"
     NODE_ENV = "preview"
   }
-  publish = "dist"
 
 [context.branch-deploy]
   command = "npm run build:prod"
+  publish = "dist"
   environment = {
-    SUPABASE_URL = "${SUPABASE_URL}",
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}",
-    WEATHER_API_KEY = "${WEATHER_API_KEY}",
+    SUPABASE_URL = "${SUPABASE_URL}"
+    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+    WEATHER_API_KEY = "${WEATHER_API_KEY}"
     NODE_ENV = "development"
   }
-  publish = "dist"
 
 [context.production.environment]
   SUPABASE_URL = "${SUPABASE_URL}"
@@ -71,9 +76,9 @@
   command = "npm run dev"
   port = 5173
   environment = {
-    SUPABASE_URL = "${SUPABASE_URL}",
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}",
-    WEATHER_API_KEY = "${WEATHER_API_KEY}",
+    SUPABASE_URL = "${SUPABASE_URL}"
+    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+    WEATHER_API_KEY = "${WEATHER_API_KEY}"
     NODE_ENV = "development"
   }
 
@@ -84,15 +89,6 @@
 [functions]
   node_version = "18"
   include_files = ["package.json", "node_modules/**/*"]
-
-[headers]
-  for = "/"
-  [headers.values]
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;"
 
 [plugins]
   - "@netlify/plugin-nextjs"
