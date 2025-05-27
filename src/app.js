@@ -1,3 +1,5 @@
+'use strict';
+
 // Import required packages
 import fuzzySearch from 'fuzzy-search';
 import { createClient } from '@supabase/supabase-js';
@@ -421,74 +423,7 @@ async function setupRealtimeSubscriptions() {
     }
 }
 
-// Update chore list
-async function updateChoreList(categoryFilter, statusFilter, searchInput) {
-    try {
-        const query = supabase
-            .from('chores')
-            .select('*')
-            .order('priority', { ascending: false })
-            .order('due_date');
 
-        if (categoryFilter) {
-            query = query.eq('category', categoryFilter);
-        }
-
-        if (statusFilter) {
-            query = query.eq('status', statusFilter);
-        }
-
-        if (searchInput) {
-            query = query.ilike('title', `%${searchInput}%`);
-        }
-
-        const { data: chores, error } = await query;
-
-        if (error) throw error;
-
-        const choresContainer = document.querySelector('.chores-list');
-        choresContainer.innerHTML = '';
-
-        chores.forEach(chore => {
-            const choreItem = document.createElement('div');
-            choreItem.className = 'chore-item bg-gray-800 rounded-lg p-4';
-            choreItem.innerHTML = `
-                <div class="chore-details">
-                    <h3 class="text-lg font-semibold">${chore.title}</h3>
-                    <div class="chore-meta text-sm text-gray-400">
-                        <span class="category-${chore.category}">${chore.category}</span>
-                        <span>•</span>
-                        <span>${chore.priority}</span>
-                        <span>•</span>
-                        <span>${chore.frequency}</span>
-                    </div>
-                </div>
-                <div class="chore-actions">
-                    <button onclick="markComplete(${chore.id})" class="btn btn-primary">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button onclick="skipChore(${chore.id})" class="btn btn-secondary">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-            choresContainer.appendChild(choreItem);
-        });
-    } catch (error) {
-        console.error('Error updating chore list:', error);
-    }
-}
-
-// Update points
-async function updatePoints() {
-    try {
-        const { data: stats, error } = await supabase
-            .from('points_stats')
-            .select('*')
-            .single();
-
-        if (error) throw error;
-        if (!stats) throw new Error('No stats data returned from database');
 
 // Mark chore as complete (real-time)
 async function markChoreComplete2(choreId) {
@@ -507,21 +442,7 @@ async function markChoreComplete2(choreId) {
     }
 }
 
-// Skip chore
-async function skipChore(choreId) {
-    try {
-        const { data, error } = await supabase
-            .from('chores')
-            .update({ status: 'skipped' })
-            .eq('id', choreId);
 
-        if (error) throw error;
-
-        updateChoreList();
-    } catch (error) {
-        console.error('Error skipping chore:', error);
-    }
-}
 
 // Category Management
 async function loadCategories() {
@@ -602,41 +523,7 @@ function updateWeatherUI(weatherData) {
     `;
 }
 
-// Chore Management
-async function addChore() {
-    try {
-        const choreData = {
-            title: document.getElementById('choreName').value,
-            category_id: document.getElementById('choreCategory').value,
-            assignee_id: document.getElementById('choreAssignee').value,
-            due_date: document.getElementById('choreDueDate').value,
-            priority: document.getElementById('chorePriority').value,
-            time_of_day: document.getElementById('timeOfDay').value,
-            frequency: document.getElementById('choreFrequency').value,
-            difficulty: document.getElementById('choreDifficulty').value,
-            seasonal_schedule: document.getElementById('seasonalSchedule').value,
-            required_tools: document.getElementById('requiredTools').value,
-            notes: document.getElementById('choreNotes').value
-        };
 
-        // Calculate points based on difficulty and frequency
-        const points = calculateChorePoints(choreData);
-        choreData.points = points;
-
-        const { data, error } = await supabase
-            .from('chores')
-            .insert([choreData])
-            .select();
-
-        if (error) throw error;
-        
-        updateChoreList();
-        showNotification('Chore added successfully!');
-    } catch (error) {
-        console.error('Error adding chore:', error);
-        showNotification('Failed to add chore');
-    }
-}
 
 // Achievement System
 async function loadAchievements() {
