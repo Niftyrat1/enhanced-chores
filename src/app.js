@@ -382,6 +382,9 @@ export async function initializeSupabase() {
     try {
         // Test connection
         try {
+            console.log('Attempting to connect to Supabase...');
+            console.log('Using URL:', import.meta.env.VITE_SUPABASE_URL);
+            
             const { data, error } = await supabase
                 .from('chores')
                 .select('id')
@@ -389,12 +392,26 @@ export async function initializeSupabase() {
 
             if (error) {
                 console.error('Database connection error:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
                 throw new Error('Failed to connect to database');
             }
             
             console.log('Connected to database successfully');
         } catch (error) {
             console.error('Error testing database connection:', error);
+            if (error.message) {
+                console.error('Error details:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
+            }
             throw error;
         }
 
