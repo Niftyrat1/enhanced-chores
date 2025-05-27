@@ -2,7 +2,6 @@
 
 // Import required packages
 import fuzzySearch from 'fuzzy-search';
-import { createClient } from '@supabase/supabase-js';
 
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
@@ -60,9 +59,6 @@ const ENV = {
     SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_KEY',
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
 };
-
-// Initialize Supabase client
-const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
 
 // Calculate chore points based on various factors
 function calculateChorePoints(chore) {

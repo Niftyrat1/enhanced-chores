@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import './app.js';
 
+// Initialize Supabase client
+const ENV = {
+    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL',
+    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_KEY'
+};
+
+export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
     try {
