@@ -1,3 +1,6 @@
+// Import required packages
+import fuzzy from 'fuzzy.js';
+
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
     points: {

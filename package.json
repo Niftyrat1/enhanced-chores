@@ -11,7 +11,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "chart.js": "^4.4.1",
-    "fuzzysearch": "^1.0.4",
+    "fuzzy.js": "^0.6.1",
     "moment": "^2.29.4",
     "vite": "^5.0.12"
   },
