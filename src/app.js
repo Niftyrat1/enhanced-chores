@@ -490,38 +490,8 @@ async function updatePoints() {
         if (error) throw error;
         if (!stats) throw new Error('No stats data returned from database');
 
-        // Type check the data
-        if (typeof stats.today_points !== 'number' ||
-            typeof stats.weekly_points !== 'number' ||
-            typeof stats.monthly_points !== 'number' ||
-            typeof stats.total_points !== 'number') {
-            throw new Error('Invalid points data type');
-        }
-
-        const pointsDisplay = document.getElementById('pointsDisplay');
-        if (pointsDisplay) {
-            pointsDisplay.textContent = stats.total_points;
-        }
-
-        const todayPoints = document.getElementById('todayPoints');
-        const weeklyPoints = document.getElementById('weeklyPoints');
-        const monthlyPoints = document.getElementById('monthlyPoints');
-
-        if (todayPoints) todayPoints.textContent = stats.today_points;
-        if (weeklyPoints) weeklyPoints.textContent = stats.weekly_points;
-        if (monthlyPoints) monthlyPoints.textContent = stats.monthly_points;
-
-        // Update progress bars
-        document.getElementById('todayProgress').style.width = `${(stats.today_points / 100) * 100}%`;
-        document.getElementById('weeklyProgress').style.width = `${(stats.weekly_points / 500) * 100}%`;
-        document.getElementById('monthlyProgress').style.width = `${(stats.monthly_points / 2000) * 100}%`;
-    } catch (error) {
-        console.error('Error updating points:', error);
-    }
-}
-
-// Mark chore as complete
-async function markComplete(choreId) {
+// Mark chore as complete (real-time)
+async function markChoreComplete2(choreId) {
     try {
         const { data, error } = await supabase
             .from('chores')
