@@ -54,24 +54,6 @@ environment = {
     NODE_ENV = "development"
 }
 
-[context.production.environment]
-SUPABASE_URL = "${SUPABASE_URL}"
-SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-WEATHER_API_KEY = "${WEATHER_API_KEY}"
-NODE_ENV = "production"
-
-[context.deployment-preview.environment]
-SUPABASE_URL = "${SUPABASE_URL}"
-SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-WEATHER_API_KEY = "${WEATHER_API_KEY}"
-NODE_ENV = "preview"
-
-[context.branch-deploy.environment]
-SUPABASE_URL = "${SUPABASE_URL}"
-SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-WEATHER_API_KEY = "${WEATHER_API_KEY}"
-NODE_ENV = "development"
-
 [dev]
 command = "npm run dev"
 port = 5173
