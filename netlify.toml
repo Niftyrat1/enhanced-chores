@@ -41,7 +41,3 @@
     WEATHER_API_KEY = "${WEATHER_API_KEY}"
     NODE_ENV = "development"
   }
-
-[build.environment]
-  CI = "true"
-  NODE_ENV = "production"
