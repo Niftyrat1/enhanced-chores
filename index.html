@@ -272,11 +272,103 @@
                         <div id="todayPoints" class="text-3xl font-bold text-primary">0</div>
                         <div class="w-full bg-gray-600 rounded-full h-2.5">
                             <div id="todayProgress" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
-                        <label>
-                            <input type="checkbox" id="reminder3"> 3 days before
-                        </label>
+                        </div>
                     </div>
                 </div>
+                <!-- Add Chore Modal -->
+                <div id="addChoreModal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">➕ Add New Chore</h3>
+                            <button class="modal-close" onclick="closeModal('addChoreModal')">×</button>
+                        </div>
+                        <form id="addChoreForm" class="space-y-4">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" id="choreName" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select id="choreCategory" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    <option value="kitchen">Kitchen</option>
+                                    <option value="bathroom">Bathroom</option>
+                                    <option value="bedroom">Bedroom</option>
+                                    <option value="outdoor">Outdoor</option>
+                                    <option value="pet-care">Pet Care</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Assignee</label>
+                                <select id="choreAssignee" class="form-select">
+                                    <option value="">Select Assignee</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Frequency</label>
+                                <select id="choreFrequency" class="form-select">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="bi-weekly">Bi-weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="once">Once</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Difficulty</label>
+                                <select id="choreDifficulty" class="form-select">
+                                    <option value="easy">Easy (1x)</option>
+                                    <option value="medium">Medium (1.5x)</option>
+                                    <option value="hard">Hard (2x)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Priority</label>
+                                <select id="chorePriority" class="form-select">
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Time of Day</label>
+                                <select id="timeOfDay" class="form-select">
+                                    <option value="">Any Time</option>
+                                    <option value="morning">Morning (6-12 AM)</option>
+                                    <option value="afternoon">Afternoon (12-6 PM)</option>
+                                    <option value="evening">Evening (6-12 PM)</option>
+                                    <option value="night">Night (12-6 AM)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Due Date & Time</label>
+                                <input type="datetime-local" id="choreDueDate" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Required Tools</label>
+                                <input type="text" id="requiredTools" class="form-input" placeholder="e.g., vacuum, mop, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Notes</label>
+                                <textarea id="choreNotes" class="form-input" rows="3"></textarea>
+                            </div>
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('addChoreModal')">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    Add Chore
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Add Chore Button -->
+                <button id="addChoreButton" class="fixed bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full shadow-lg">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Chore
+                </button>
                 <button onclick="addChore()" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white">
                     Add Chore
                 </button>

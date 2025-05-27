@@ -397,38 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 });
 
-// Form submission
-async function addChore() {
-    try {
-        const choreData = {
-            title: document.getElementById('choreName').value,
-            category: document.getElementById('choreCategory').value,
-            assignee_id: document.getElementById('choreAssignee').value,
-            frequency: document.getElementById('choreFrequency').value,
-            difficulty: document.getElementById('choreDifficulty').value,
-            priority: document.getElementById('chorePriority').value,
-            time_of_day: document.getElementById('timeOfDay').value,
-            seasonal_schedule: document.getElementById('seasonalSchedule').value,
-            required_tools: document.getElementById('requiredTools').value,
-            notes: document.getElementById('choreNotes').value,
-            due_date: document.getElementById('choreDueDate').value
-        };
-
-        const { data, error } = await supabase
-            .from('chores')
-            .insert([choreData])
-            .select();
-
-        if (error) throw error;
-
-        closeModal('addChoreModal');
-        updateChoreList();
-        updatePoints();
-    } catch (error) {
-        console.error('Error adding chore:', error);
-        showError('Error adding chore: ' + error.message);
-    }
-}
 
 // Populate assignee dropdown
 async function populateAssignees() {
