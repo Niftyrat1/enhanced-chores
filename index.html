@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Household Chore Tracker</title>
+    <!-- Add Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add Fuzzysearch for search functionality -->
+    <script src="https://unpkg.com/fuzzysearch@1.0.4"></script>
+    <!-- Add Moment.js for date/time handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Add new styles for enhanced features */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --background: #f8f9fa;
+            --surface: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-color: #e0e0e0;
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Category colors */
+        .category-kitchen { color: #4CAF50; }
+        .category-bathroom { color: #2196F3; }
+        .category-bedroom { color: #9C27B0; }
+        .category-outdoor { color: #FF9800; }
+        .category-pet-care { color: #E91E63; }
+
+        /* Achievement badges */
+        .achievement-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+        }
+
+        /* Analytics charts */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .chore-item {
+                flex-direction: column;
+            }
+            .chore-actions {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+
+        /* Dark theme support */
+        [data-theme="dark"] {
+            --primary-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            --background: #1a202c;
+            --surface: rgba(45, 55, 72, 0.95);
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --success-color: #48bb78;
+            --danger-color: #f56565;
+            --warning-color: #ed8936;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <!-- New header with search and filters -->
+        <div class="header">
+            <h1>🏠 Enhanced Chore Tracker</h1>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search chores...">
+                <i class="fas fa-search"></i>
+            </div>
+            <!-- Points & Rewards Dashboard -->
+            <div class="points-dashboard">
+                <div class="points-section">
+                    <h3>Today's Points</h3>
+                    <div id="todayPoints" class="points-display">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div id="todayProgress" class="progress-fill"></div>
+                        </div>
+                        <div class="points-target">Goal: 100 points</div>
+                    </div>
+                </div>
+                <div class="points-section">
+                    <h3>Weekly Points</h3>
+                    <div id="weeklyPoints" class="points-display">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div id="weeklyProgress" class="progress-fill"></div>
+                        </div>
+                        <div class="points-target">Goal: 500 points</div>
+                    </div>
+                </div>
+                <div class="points-section">
+                    <h3>Monthly Points</h3>
+                    <div id="monthlyPoints" class="points-display">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div id="monthlyProgress" class="progress-fill"></div>
+                        </div>
+                        <div class="points-target">Goal: 2000 points</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="achievements-section">
+                <h3>Achievements</h3>
+                <div id="achievements" class="achievements-grid">
+                    <!-- Achievements will be populated dynamically -->
+                </div>
+            </div>
+
+            <div class="challenges-section">
+                <h3>Family Challenges</h3>
+                <div id="challenges" class="challenges-grid">
+                    <!-- Challenges will be populated dynamically -->
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="kitchen">Kitchen <i class="fas fa-utensils category-icon"></i></option>
+                        <option value="bathroom">Bathroom <i class="fas fa-shower category-icon"></i></option>
+                        <option value="bedroom">Bedroom <i class="fas fa-bed category-icon"></i></option>
+                        <option value="outdoor">Outdoor <i class="fas fa-tree category-icon"></i></option>
+                        <option value="pet-care">Pet Care <i class="fas fa-paw category-icon"></i></option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Assignee</label>
+                    <select id="assigneeFilter">
+                        <option value="">All Assignees</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Frequency</label>
+                    <select id="frequencyFilter">
+                        <option value="">All Frequencies</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="bi-weekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="once">Once</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Weather</label>
+                    <select id="weatherFilter">
+                        <option value="">All Weather</option>
+                        <option value="sunny">Sunny</option>
+                        <option value="rainy">Rainy</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="snowy">Snowy</option>
+                    </select>
+                </div>
+            </div>
+            <div id="weatherSuggestions" class="weather-suggestions"></div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Dark Mode</span>
+            </button>
+        </div>
+
+        <!-- New tab structure -->
+        <div class="tabs">
+            <button class="tab" onclick="switchTab('chores')">📋 Chores</button>
+            <button class="tab" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
+            <button class="tab" onclick="switchTab('history')">📜 History</button>
+            <button class="tab" onclick="switchTab('points')">✨ Points & Rewards</button>
+            <button class="tab" onclick="switchTab('achievements')">🌟 Achievements</button>
+            <button class="tab" onclick="switchTab('family')">👨‍👩‍👧‍👦 Family</button>
+        </div>
+
+        <!-- Tab content -->
+        <div id="chores-tab" class="tab-content">
+            <!-- Add new chore form -->
+            <div class="add-chore-form">
+                <h3>➕ Add New Chore</h3>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="choreName">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="choreCategory">
+                        <option value="kitchen">Kitchen</option>
+                        <option value="bathroom">Bathroom</option>
+                        <option value="bedroom">Bedroom</option>
+                        <option value="outdoor">Outdoor</option>
+                        <option value="pet-care">Pet Care</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Assignee</label>
+                    <select id="choreAssignee"></select>
+                </div>
+                <div class="form-group">
+                    <label>Frequency</label>
+                    <select id="choreFrequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="bi-weekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="once">Once</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select id="choreDifficulty">
+                        <option value="easy">Easy (1x)</option>
+                        <option value="medium">Medium (1.5x)</option>
+                        <option value="hard">Hard (2x)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date & Time</label>
+                    <input type="datetime-local" id="choreDueDate">
+                </div>
+                <div class="form-group">
+                    <label>Seasonal Schedule</label>
+                    <select id="seasonalSchedule">
+                        <option value="">None</option>
+                        <option value="spring">Spring Only</option>
+                        <option value="summer">Summer Only</option>
+                        <option value="fall">Fall Only</option>
+                        <option value="winter">Winter Only</option>
+                        <option value="quarterly">Quarterly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Time of Day</label>
+                    <select id="timeOfDay">
+                        <option value="">Any Time</option>
+                        <option value="morning">Morning (6-12 AM)</option>
+                        <option value="afternoon">Afternoon (12-6 PM)</option>
+                        <option value="evening">Evening (6-12 PM)</option>
+                        <option value="night">Night (12-6 AM)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="chorePriority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Required Tools</label>
+                    <input type="text" id="requiredTools" placeholder="e.g., vacuum, mop, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="choreNotes"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Reminders</label>
+                    <div class="reminder-options">
+                        <label>
+                            <input type="checkbox" id="reminder1"> 1 hour before
+                        </label>
+                        <label>
+                            <input type="checkbox" id="reminder2"> 1 day before
+                        </label>
+                        <label>
+                            <input type="checkbox" id="reminder3"> 3 days before
+                        </label>
+                    </div>
+                </div>
+                <button onclick="addChore()">Add Chore</button>
+                <div class="skip-options" style="display: none;">
+                    <h3>Skip/Postpone Options</h3>
+                    <div class="form-group">
+                        <label>Reason for Skipping</label>
+                        <select id="skipReason">
+                            <option value="busy">Too Busy</option>
+                            <option value="weather">Bad Weather</option>
+                            <option value="sick">Illness</option>
+                            <option value="travel">Traveling</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Postpone Until</label>
+                        <input type="datetime-local" id="postponeUntil">
+                    </div>
+                    <button onclick="skipChore()">Skip Chore</button>
+                    <button onclick="postponeChore()">Postpone Chore</button>
+                </div>
+            </div>
+
+            <!-- Chores list -->
+            <div id="choresList" class="chores-list"></div>
+        </div>
+
+        <!-- Points and Rewards tab -->
+        <div id="points-tab" class="tab-content">
+            <div class="points-dashboard">
+                <div class="points-section">
+                    <h3>Today's Points</h3>
+                    <div class="points-display" id="todayPoints">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="todayProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="points-section">
+                    <h3>Weekly Points</h3>
+                    <div class="points-display" id="weeklyPoints">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weeklyProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="points-section">
+                    <h3>Monthly Points</h3>
+                    <div class="points-display" id="monthlyPoints">0</div>
+                    <div class="points-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="monthlyProgress"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="achievements-section">
+                <h2>Achievements</h2>
+                <div class="achievements-grid" id="achievements"></div>
+            </div>
+
+            <div class="challenges-section">
+                <h2>Family Challenges</h2>
+                <div class="challenges-grid" id="challenges"></div>
+            </div>
+
+            <div id="badges" class="badges-section">
+                <h2>Your Badges</h2>
+            </div>
+        </div>
+
+        <!-- Leaderboard tab -->
+        <div id="leaderboard-tab" class="tab-content">
+            <div class="leaderboard-filters">
+                <select id="leaderboardPeriod">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="all-time">All Time</option>
+                </select>
+            </div>
+            <div id="leaderboard" class="leaderboard"></div>
+        </div>
+
+        <!-- Analytics tab -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="chart-container">
+                <canvas id="completionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="timeSpentChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoryDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- History tab -->
+        <div id="history-tab" class="tab-content">
+            <div class="history-filters">
+                <select id="historyPeriod">
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+            <div id="choreHistory" class="chore-history"></div>
+        </div>
+
+        <!-- Achievements tab -->
+        <div id="achievements-tab" class="tab-content">
+            <div class="achievements-grid"></div>
+        </div>
+
+        <!-- Family tab -->
+        <div id="family-tab" class="tab-content">
+            <div class="family-members"></div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="notifications"></div>
+    </div>
+
+    <!-- Add the Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // 🔧 SUPABASE CREDENTIALS - Replace with your actual credentials
+        const SUPABASE_URL = 'https://idsqlbnfbhjwyoagpbph.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkc3FsYm5mYmhqd3lvYWdwYnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNzQxMjAsImV4cCI6MjA2Mzg1MDEyMH0.LDtxlOJQufcZeBdLmAMrUT7XxqnZnU_sMC9E4NgVhmM';
+
+        // Initialize Supabase
+        let supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Points system
+        const POINTS_SYSTEM = {
+            daily: 1,
+            weekly: 3,
+            biweekly: 5,
+            monthly: 7,
+            once: 2,
+            difficulty: {
+                easy: 1,
+                medium: 1.5,
+                hard: 2
+            }
+        };
+
+        // Achievement thresholds
+        const ACHIEVEMENTS = {
+            'week_warrior': { points: 50, description: 'Complete 50 chores in a week' },
+            'clean_streak': { streak: 7, description: 'Complete chores every day for a week' },
+            'helper_hero': { points: 100, description: 'Reach 100 points' }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            initializeSupabase();
+            setupEventListeners();
+            startAutoRefresh();
+            setupNotifications();
+            loadCategories();
+            loadAssignees();
+            initializeCharts();
+        });
+
+        // Add all the new features here...
+    </script>
+</body>
+</html>

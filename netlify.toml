@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  SUPABASE_URL = "https://hjxqjgkqjxqjgqjxqjgkq.supabase.co"
+  SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqeHFqZ2txanhxbW94dW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDE2Njg2NzksImV4cCI6MjAyNzI0NDI3OX0.S6Qj2ZoX8X8X8X8X8X8X8X8X8X8X8X8X8X8X8"
+  WEATHER_API_KEY = "64407808530545b888211305232206"
+
+[dev]
+  command = "npm run dev"
+  port = 5173
