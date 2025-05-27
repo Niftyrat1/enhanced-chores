@@ -2,6 +2,7 @@
 
 // Import required packages
 import fuzzySearch from 'fuzzy-search';
+import { supabase } from './config/supabase.js';
 
 // Core Configuration
 const ACHIEVEMENT_THRESHOLDS = {
@@ -314,6 +315,28 @@ function updateProgressBars(todayPoints, weekPoints, monthPoints) {
     updateBar('monthlyProgress', monthPoints, 2000);
 }
 
+// Function to load theme from localStorage
+function loadTheme() {
+    try {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.classList.add(savedTheme);
+            document.body.classList.remove(savedTheme === 'dark' ? 'light' : 'dark');
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (themeIcon && themeText) {
+                const isDark = savedTheme === 'dark';
+                themeIcon.textContent = isDark ? '☀️' : '🌙';
+                themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading theme:', error);
+    }
+}
+
 // Function to toggle theme
 function toggleTheme() {
     try {
@@ -355,9 +378,6 @@ async function initializeSupabase() {
         if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
             throw new Error('Supabase configuration missing');
         }
-
-        // Initialize Supabase client
-        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
 
         // Test connection
         try {
@@ -614,6 +634,7 @@ function createAchievementHTML(achievement) {
 
 // Initialization
 async function initializeApp() {
+    loadTheme();
     await initializeSupabase();
     await loadCategories();
     await loadAchievements();
