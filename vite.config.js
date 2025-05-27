@@ -1,29 +1,34 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import legacy from '@vitejs/plugin-legacy';
 
-export default defineConfig({
-  plugins: [
-    react(),
-    legacy({
-      targets: ['defaults', 'not IE 11']
-    })
-  ],
-  build: {
-    outDir: 'dist',
-    rollupOptions: {
-      external: ['chart.js', 'chartjs-plugin-datalabels'],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM'
+export default defineConfig(({ mode }) => {
+  // Load environment variables
+  const env = loadEnv(mode, process.cwd());
+
+  return {
+    plugins: [
+      react(),
+      legacy({
+        targets: ['defaults', 'not IE 11']
+      })
+    ],
+    build: {
+      outDir: 'dist',
+      rollupOptions: {
+        external: ['chart.js', 'chartjs-plugin-datalabels'],
+        output: {
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM'
+          }
         }
       }
+    },
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
     }
-  },
-  resolve: {
-    alias: {
-      '@': '/src'
-    }
-  }
+  };
 });
