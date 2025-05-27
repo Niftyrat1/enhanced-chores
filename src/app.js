@@ -378,7 +378,7 @@ function closeModal(modalId) {
 }
 
 // Core Functions
-async function initializeSupabase() {
+export async function initializeSupabase() {
     try {
         // Test connection
         try {
