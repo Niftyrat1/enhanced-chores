@@ -6,13 +6,8 @@ const ENV = {
     SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
 };
 
-// Validate environment variables
-if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
-    throw new Error('Missing required environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
-}
-
-// Initialize Supabase client with proper CORS handling
-export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
+// Initialize Supabase client with error handling
+export const supabase = createClient(ENV.SUPABASE_URL || 'http://localhost:54321', ENV.SUPABASE_ANON_KEY || 'your-anon-key', {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
@@ -25,3 +20,9 @@ export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
         fetch: (...args) => fetch(...args)
     }
 });
+
+// Check if required environment variables are set
+if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
+    console.warn('Warning: Supabase environment variables not set. Using default values.');
+    console.warn('Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+}
