@@ -1,28 +1,6 @@
 [build]
   command = "npm run build:prod"
   publish = "dist"
-  base = "/"
-  functions = "netlify/functions"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = true
-
-[[headers]]
-  for = "/"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;"
-
-[cache]
-  directories = ["node_modules", ".vite", "dist"]
-  max_age = 3600
 
 [context.production]
   command = "npm run build:prod"
@@ -67,18 +45,3 @@
 [build.environment]
   CI = "true"
   NODE_ENV = "production"
-
-[functions]
-  node_version = "18"
-  include_files = ["package.json", "node_modules/**/*"]
-
-[plugins]
-  package = [
-    "@netlify/plugin-nextjs",
-    "@netlify/plugin-functions",
-    "@netlify/plugin-cache"
-  ]
-
-[cache.invalidate]
-  files = ["package.json", "netlify.toml"]
-  directories = ["src/**/*"]
