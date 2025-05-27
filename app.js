@@ -325,6 +325,9 @@ async function initializeSupabase() {
             throw new Error('Supabase configuration missing');
         }
 
+        // Initialize Supabase client
+        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+        
         // Test connection
         const { data, error } = await supabase
             .from('chores')
@@ -346,6 +349,191 @@ async function initializeSupabase() {
     } catch (error) {
         console.error('Initialization error:', error);
         throw error;
+    }
+}
+
+// Modal functions
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.getElementById('addChoreForm').reset();
+}
+
+// Theme toggle
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const icon = document.querySelector('.theme-toggle i');
+    icon.classList.toggle('fa-moon');
+    icon.classList.toggle('fa-sun');
+}
+
+// Form submission
+async function addChore() {
+    try {
+        const choreData = {
+            title: document.getElementById('choreName').value,
+            category: document.getElementById('choreCategory').value,
+            assignee_id: document.getElementById('choreAssignee').value,
+            frequency: document.getElementById('choreFrequency').value,
+            difficulty: document.getElementById('choreDifficulty').value,
+            priority: document.getElementById('chorePriority').value,
+            time_of_day: document.getElementById('timeOfDay').value,
+            seasonal_schedule: document.getElementById('seasonalSchedule').value,
+            required_tools: document.getElementById('requiredTools').value,
+            notes: document.getElementById('choreNotes').value,
+            due_date: document.getElementById('choreDueDate').value
+        };
+
+        const { data, error } = await supabase
+            .from('chores')
+            .insert([choreData])
+            .select();
+
+        if (error) throw error;
+
+        closeModal('addChoreModal');
+        updateChoreList();
+        updatePoints();
+    } catch (error) {
+        console.error('Error adding chore:', error);
+        showError('Error adding chore: ' + error.message);
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('id, name')
+            .order('name');
+
+        if (error) throw error;
+
+        const assigneeSelect = document.getElementById('choreAssignee');
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.name;
+            assigneeSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error populating assignees:', error);
+    }
+}
+
+// Update chore list
+async function updateChoreList() {
+    try {
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+        let query = supabase
+            .from('chores')
+            .select('*')
+            .order('priority', { ascending: false })
+            .order('due_date');
+
+        if (categoryFilter) {
+            query = query.eq('category', categoryFilter);
+        }
+
+        if (statusFilter) {
+            query = query.eq('status', statusFilter);
+        }
+
+        if (searchInput) {
+            query = query.ilike('title', `%${searchInput}%`);
+        }
+
+        const { data: chores, error } = await query;
+
+        if (error) throw error;
+
+        const choresContainer = document.querySelector('.chores-list');
+        choresContainer.innerHTML = '';
+
+        chores.forEach(chore => {
+            const choreItem = document.createElement('div');
+            choreItem.className = 'chore-item bg-gray-800 rounded-lg p-4';
+            choreItem.innerHTML = `
+                <div class="chore-details">
+                    <h3 class="text-lg font-semibold">${chore.title}</h3>
+                    <div class="chore-meta text-sm text-gray-400">
+                        <span class="category-${chore.category}">${chore.category}</span>
+                        <span>•</span>
+                        <span>${chore.priority}</span>
+                        <span>•</span>
+                        <span>${chore.frequency}</span>
+                    </div>
+                </div>
+                <div class="chore-actions">
+                    <button onclick="markComplete(${chore.id})" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="skipChore(${chore.id})" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            choresContainer.appendChild(choreItem);
+        });
+    } catch (error) {
+        console.error('Error updating chore list:', error);
+    }
+}
+
+// Update points
+async function updatePoints() {
+    try {
+        const { data: stats, error } = await supabase
+            .from('points_stats')
+            .select('*')
+            .single();
+
+        if (error) throw error;
+
+        document.getElementById('todayPoints').textContent = stats.today_points;
+        document.getElementById('weeklyPoints').textContent = stats.weekly_points;
+        document.getElementById('monthlyPoints').textContent = stats.monthly_points;
+
+        // Update progress bars
+        document.getElementById('todayProgress').style.width = `${(stats.today_points / 100) * 100}%`;
+        document.getElementById('weeklyProgress').style.width = `${(stats.weekly_points / 500) * 100}%`;
+        document.getElementById('monthlyProgress').style.width = `${(stats.monthly_points / 2000) * 100}%`;
+    } catch (error) {
+        console.error('Error updating points:', error);
+    }
+}
+
+// Mark chore as complete
+async function markComplete(choreId) {
+    try {
+        const { data, error } = await supabase
+            .from('chores')
+            .update({ status: 'completed' })
+            .eq('id', choreId);
+
+        if (error) throw error;
+
+        updateChoreList();
+        updatePoints();
+    } catch (error) {
+        console.error('Error marking chore complete:', error);
+    }
+}
+
+// Skip chore
+async function skipChore(choreId) {
+    try {
+        const { data, error } = await supabase
+            .from('chores')
+            .update({ status: 'skipped' })
+            .eq('id', choreId);
+
+        if (error) throw error;
+
+        updateChoreList();
+    } catch (error) {
+        console.error('Error skipping chore:', error);
     }
 }
 
