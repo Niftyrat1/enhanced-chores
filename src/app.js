@@ -358,16 +358,6 @@ async function initializeSupabase() {
     }
 }
 
-// Modal functions
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'flex';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-    document.getElementById('addChoreForm').reset();
-}
-
 // Populate assignee dropdown
 async function populateAssignees() {
     try {
