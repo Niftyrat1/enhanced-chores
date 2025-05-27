@@ -400,6 +400,12 @@ async function addChore() {
     } catch (error) {
         console.error('Error adding chore:', error);
         showError('Error adding chore: ' + error.message);
+    }
+}
+
+// Populate assignee dropdown
+async function populateAssignees() {
+    try {
         const { data: users, error } = await supabase
             .from('users')
             .select('id, name')
