@@ -60,9 +60,6 @@ const ENV = {
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
 };
 
-// Export all functions
-export * from './app.js';
-
 // Calculate chore points based on various factors
 function calculateChorePoints(chore) {
     const basePoints = 10; // Base points for any chore
@@ -612,6 +609,7 @@ function createAchievementHTML(achievement) {
             </div>
         </div>
     `;
+}
 }
 
 // Initialization
