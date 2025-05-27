@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import './app.js';
 
 // Initialize the application
