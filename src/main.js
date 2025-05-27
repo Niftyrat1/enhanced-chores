@@ -1,5 +1,8 @@
 import { supabase } from './config/supabase.js';
-import './app.js';
+import * as app from './app.js';
+
+// Export all functions from app.js
+export * from './app.js';
 
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -13,7 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         await initializeTheme();
 
         // Initialize Supabase
-        await initializeSupabase();
+        await app.initializeSupabase();
         
         // Initialize UI components
         await initializeUI();
