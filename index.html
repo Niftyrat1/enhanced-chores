@@ -503,24 +503,28 @@
     <!-- Add the Supabase client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // 🔧 SUPABASE CREDENTIALS - Replace with your actual credentials
-        const SUPABASE_URL = 'https://idsqlbnfbhjwyoagpbph.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkc3FsYm5mYmhqd3lvYWdwYnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNzQxMjAsImV4cCI6MjA2Mzg1MDEyMH0.LDtxlOJQufcZeBdLmAMrUT7XxqnZnU_sMC9E4NgVhmM';
-
-        // Initialize Supabase
-        let supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+        // Initialize Supabase client
+        const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_KEY');
+        
         // Points system
         const POINTS_SYSTEM = {
-            daily: 1,
-            weekly: 3,
-            biweekly: 5,
-            monthly: 7,
-            once: 2,
+            frequency: {
+                daily: 1,
+                weekly: 2,
+                'bi-weekly': 3,
+                monthly: 4,
+                once: 1
+            },
             difficulty: {
                 easy: 1,
                 medium: 1.5,
                 hard: 2
+            },
+            priority: {
+                low: 1,
+                medium: 2,
+                high: 3,
+                urgent: 4
             }
         };
 
