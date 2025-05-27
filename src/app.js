@@ -339,6 +339,58 @@ function toggleTheme() {
     }
 }
 
+// Theme functions
+export function initializeTheme() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (!themeToggle) {
+        console.error('Theme toggle button not found');
+        return;
+    }
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+        document.body.classList.toggle('light', savedTheme !== 'dark');
+        
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        
+        if (themeIcon && themeText) {
+            const isDark = savedTheme === 'dark';
+            themeIcon.textContent = isDark ? '☀️' : '🌙';
+            themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
+    }
+
+    // Add theme toggle event listener
+    themeToggle.addEventListener('click', toggleTheme);
+}
+
+function toggleTheme() {
+    try {
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (!themeIcon || !themeText) {
+            throw new Error('Theme toggle elements not found');
+        }
+
+        document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
+        
+        const isDark = document.body.classList.contains('dark');
+        themeIcon.textContent = isDark ? '☀️' : '🌙';
+        themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+
+        // Save theme preference
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch (error) {
+        console.error('Error toggling theme:', error);
+        alert('Error toggling theme: ' + error.message);
+    }
+}
+
 // Modal functions
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'flex';
