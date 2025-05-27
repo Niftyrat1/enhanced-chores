@@ -168,7 +168,6 @@ async function addChore() {
 
 // Update chore list
 async function updateChoreList(supabase, categoryFilter, statusFilter, searchInput) {
-async function updateChoreList(categoryFilter, statusFilter, searchInput) {
     try {
         const query = supabase
             .from('chores')
@@ -353,10 +352,6 @@ function closeModal(modalId) {
 // Core Functions
 async function initializeSupabase() {
     try {
-        if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
-            throw new Error('Supabase configuration missing');
-        }
-
         // Test connection
         try {
             const { data, error } = await supabase
@@ -607,7 +602,6 @@ function createAchievementHTML(achievement) {
             </div>
         </div>
     `;
-}
 }
 
 // Initialization
