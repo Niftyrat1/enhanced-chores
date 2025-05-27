@@ -6,15 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "start": "vite",
+    "build:prod": "NODE_ENV=production vite build",
+    "check": "npm run lint && npm run test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "chart.js": "^4.4.1",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "fuzzy-search": "^1.0.0",
-    "moment": "^2.29.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "moment": "^2.29.4"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -23,6 +29,51 @@
     "tailwindcss": "^3.4.1",
     "postcss": "^8.4.33",
     "autoprefixer": "^10.4.17",
-    "@vitejs/plugin-legacy": "^4.0.2"
+    "@vitejs/plugin-legacy": "^4.0.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "jest": "^29.7.0",
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/dom": "^9.6.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.11",
+    "@types/chart.js": "^2.9.43"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:react/recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+    ],
+    "rules": {
+      "react/react-in-jsx-scope": "off",
+      "@typescript-eslint/explicit-function-return-type": "off"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "all",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["@testing-library/jest-dom"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

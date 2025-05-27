@@ -42,6 +42,13 @@ const POINTS_SYSTEM = {
         afternoon: 1,
         evening: 0.8,
         night: 1.5
+    },
+    seasonalSchedule: {
+        spring: 1.1,
+        summer: 1.2,
+        fall: 1.1,
+        winter: 0.9,
+        none: 1
     }
 };
 
@@ -64,9 +71,10 @@ function calculateChorePoints(chore) {
     const difficultyMultiplier = POINTS_SYSTEM.difficulty[chore.difficulty] || 1;
     const priorityMultiplier = POINTS_SYSTEM.priority[chore.priority] || 1;
     const timeMultiplier = POINTS_SYSTEM.timeOfDay[chore.time_of_day] || 1;
+    const seasonalMultiplier = POINTS_SYSTEM.seasonalSchedule[chore.seasonal_schedule] || 1;
     
     // Calculate total points
-    return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier);
+    return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
 }
 
 // Function to populate assignee dropdown
@@ -92,28 +100,50 @@ async function populateAssignees() {
 // Function to add a new chore
 async function addChore() {
     try {
+        // Get form elements
+        const form = document.getElementById('addChoreForm');
+        if (!form) throw new Error('Add chore form not found');
+
+        // Get form data
         const choreData = {
-            title: document.getElementById('choreName').value,
-            category: document.getElementById('choreCategory').value,
-            assignee_id: document.getElementById('choreAssignee').value,
-            frequency: document.getElementById('choreFrequency').value,
-            difficulty: document.getElementById('choreDifficulty').value,
-            priority: document.getElementById('chorePriority').value,
-            time_of_day: document.getElementById('timeOfDay').value,
-            seasonal_schedule: document.getElementById('seasonalSchedule').value,
-            required_tools: document.getElementById('requiredTools').value,
-            notes: document.getElementById('choreNotes').value,
-            due_date: document.getElementById('choreDueDate').value
+            title: form.querySelector('#choreName').value.trim(),
+            category: form.querySelector('#choreCategory').value.trim(),
+            assignee_id: form.querySelector('#choreAssignee').value,
+            frequency: form.querySelector('#choreFrequency').value,
+            difficulty: form.querySelector('#choreDifficulty').value,
+            priority: form.querySelector('#chorePriority').value,
+            time_of_day: form.querySelector('#timeOfDay').value,
+            seasonal_schedule: form.querySelector('#seasonalSchedule').value,
+            required_tools: form.querySelector('#requiredTools').value.trim(),
+            notes: form.querySelector('#choreNotes').value.trim(),
+            due_date: form.querySelector('#choreDueDate').value
         };
 
+        // Validate required fields
         if (!choreData.title || !choreData.category) {
-            alert('Title and Category are required');
-            return;
+            throw new Error('Title and Category are required');
         }
 
+        // Validate date
+        if (choreData.due_date) {
+            const dueDate = new Date(choreData.due_date);
+            if (isNaN(dueDate.getTime())) {
+                throw new Error('Invalid due date format');
+            }
+        }
+
+        // Validate required fields
+        const requiredFields = ['frequency', 'difficulty', 'priority', 'time_of_day', 'seasonal_schedule'];
+        const missingFields = requiredFields.filter(field => !choreData[field]);
+        if (missingFields.length > 0) {
+            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        }
+
+        // Calculate points
         const points = calculateChorePoints(choreData);
         choreData.points = points;
 
+        // Insert into database
         const { data, error } = await supabase
             .from('chores')
             .insert([choreData])
@@ -122,7 +152,7 @@ async function addChore() {
         if (error) throw error;
 
         // Clear form
-        document.getElementById('addChoreForm').reset();
+        form.reset();
         closeModal('addChoreModal');
         
         // Update UI
@@ -132,66 +162,117 @@ async function addChore() {
         alert('Chore added successfully!');
     } catch (error) {
         console.error('Error adding chore:', error);
-        alert('Error adding chore: ' + error.message);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        alert(`Error adding chore: ${errorMessage}`);
     }
 }
 
 // Function to update chore list
 async function updateChoreList() {
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    
-    const query = supabase
-        .from('chores')
-        .select('*')
-        .order('due_date');
+    try {
+        // Get filter elements
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('searchInput');
 
-    if (categoryFilter) {
-        query.eq('category', categoryFilter);
-    }
+        if (!categoryFilter || !statusFilter || !searchInput) {
+            throw new Error('Required DOM elements not found');
+        }
 
-    if (statusFilter) {
-        query.eq('status', statusFilter);
-    }
+        // Validate filter values
+        const category = categoryFilter.value.trim();
+        const status = statusFilter.value.trim();
+        const search = searchInput.value.trim().toLowerCase();
 
-    const { data: chores, error } = await query;
+        // Build query
+        let query = supabase
+            .from('chores')
+            .select('*')
+            .order('priority', { ascending: false })
+            .order('due_date');
 
-    if (error) throw error;
+        // Apply filters
+        if (category) {
+            query = query.eq('category', category);
+        }
 
-    const choresList = document.querySelector('.chores-list');
-    choresList.innerHTML = '';
+        if (status) {
+            query = query.eq('status', status);
+        }
 
-    chores.forEach(chore => {
-        const choreElement = document.createElement('div');
-        choreElement.className = 'bg-gray-700 rounded-lg p-4 mb-4';
-        
-        choreElement.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="text-lg font-semibold">${chore.title}</h3>
-                    <div class="text-sm text-gray-400">
-                        <span class="category-${chore.category}">${chore.category}</span>
-                        • ${new Date(chore.due_date).toLocaleDateString()}
+        if (search) {
+            query = query.ilike('title', `%${search}%`);
+        }
+
+        // Execute query
+        const { data: chores, error } = await query;
+
+        if (error) throw error;
+
+        // Update UI
+        const choresContainer = document.querySelector('.chores-list');
+        if (!choresContainer) {
+            throw new Error('Chores container not found');
+        }
+
+        choresContainer.innerHTML = '';
+
+        // Create chore items
+        chores.forEach(chore => {
+            const choreItem = document.createElement('div');
+            choreItem.className = 'chore-item bg-gray-700 rounded-lg p-4 mb-4';
+            choreItem.setAttribute('role', 'listitem');
+            choreItem.setAttribute('aria-label', `Chore: ${chore.title}`);
+
+            choreItem.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold" role="heading" aria-level="3">${chore.title}</h3>
+                        <div class="text-sm text-gray-400">
+                            <span class="category-${chore.category}" role="status">${chore.category}</span>
+                            • ${new Date(chore.due_date).toLocaleDateString()}
+                            • ${chore.points} points
+                            • ${chore.priority}
+                            • ${chore.frequency}
+                        </div>
+                        ${chore.notes ? `<p class="mt-2 text-gray-400" role="note">${chore.notes}</p>` : ''}
                     </div>
-                    <div class="mt-2">
-                        <span class="text-primary">${chore.points} points</span>
-                        • ${chore.frequency}
-                        • ${chore.priority}
+                    <div class="flex space-x-2">
+                        <button 
+                            onclick="markChoreComplete(${chore.id})" 
+                            class="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
+                            role="button"
+                            aria-label="Mark chore as complete"
+                        >
+                            Complete
+                        </button>
+                        <button 
+                            onclick="skipChore(${chore.id})" 
+                            class="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white"
+                            role="button"
+                            aria-label="Skip chore"
+                        >
+                            Skip
+                        </button>
+                        <button 
+                            onclick="postponeChore(${chore.id})" 
+                            class="px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 text-white"
+                            role="button"
+                            aria-label="Postpone chore"
+                        >
+                            Postpone
+                        </button>
                     </div>
                 </div>
-                <div class="flex space-x-2">
-                    <button onclick="markChoreComplete(${chore.id})" class="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white">
-                        Complete
-                    </button>
-                    <button onclick="skipChore(${chore.id})" class="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white">
-                        Skip
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        choresList.appendChild(choreElement);
-    });
+            `;
+
+            choresContainer.appendChild(choreItem);
+        });
+    } catch (error) {
+        console.error('Error updating chore list:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        alert(`Error updating chore list: ${errorMessage}`);
+    }
 }
 
 // Function to mark chore as complete
@@ -286,17 +367,26 @@ function updateProgressBars(todayPoints, weekPoints, monthPoints) {
 
 // Function to toggle theme
 function toggleTheme() {
-    document.body.classList.toggle('dark');
-    document.body.classList.toggle('light');
-    const themeIcon = document.getElementById('themeIcon');
-    const themeText = document.getElementById('themeText');
-    
-    if (themeIcon.textContent === '🌙') {
-        themeIcon.textContent = '☀️';
-        themeText.textContent = 'Light Mode';
-    } else {
-        themeIcon.textContent = '🌙';
-        themeText.textContent = 'Dark Mode';
+    try {
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (!themeIcon || !themeText) {
+            throw new Error('Theme toggle elements not found');
+        }
+
+        document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
+        
+        const isDark = document.body.classList.contains('dark');
+        themeIcon.textContent = isDark ? '☀️' : '🌙';
+        themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+
+        // Save theme preference
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch (error) {
+        console.error('Error toggling theme:', error);
+        alert('Error toggling theme: ' + error.message);
     }
 }
 
@@ -319,28 +409,69 @@ async function initializeSupabase() {
 
         // Initialize Supabase client
         supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
-        
-        // Test connection
-        const { data, error } = await supabase
-            .from('chores')
-            .select('id')
-            .single();
 
-        if (error) throw error;
-        
-        console.log('Connected to database successfully');
-        
+        // Test connection
+        try {
+            const { data, error } = await supabase
+                .from('chores')
+                .select('id')
+                .single();
+
+            if (error) {
+                console.error('Database connection error:', error);
+                throw new Error('Failed to connect to database');
+            }
+            
+            console.log('Connected to database successfully');
+        } catch (error) {
+            console.error('Error testing database connection:', error);
+            throw error;
+        }
+
         // Initialize additional features
         try {
-            await createHistoryTable();
-            await createAchievementSystem();
             await setupRealtimeSubscriptions();
+            console.log('Realtime subscriptions initialized successfully');
         } catch (initError) {
             console.error('Error initializing features:', initError);
+            throw new Error('Failed to initialize features');
         }
     } catch (error) {
         console.error('Initialization error:', error);
         throw error;
+    }
+}
+
+// Helper functions
+async function setupRealtimeSubscriptions() {
+    try {
+        // Listen for chore changes
+        supabase
+            .channel('chore-changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'chores',
+            }, (payload) => {
+                console.log('Change received:', payload);
+                updateChoreList();
+            })
+            .subscribe();
+
+        // Listen for points changes
+        supabase
+            .channel('points-changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'points',
+            }, (payload) => {
+                console.log('Points change received:', payload);
+                updatePoints();
+            })
+            .subscribe();
+    } catch (error) {
+        console.error('Error setting up realtime subscriptions:', error);
     }
 }
 
