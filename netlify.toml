@@ -1,43 +1,19 @@
 [build]
-  command = "npm run build:prod"
-  publish = "dist"
+command = "npm run build:prod"
+publish = "dist"
 
 [context.production]
-  command = "npm run build:prod"
-  publish = "dist"
-  environment = {
-    SUPABASE_URL = "${SUPABASE_URL}"
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-    WEATHER_API_KEY = "${WEATHER_API_KEY}"
-    NODE_ENV = "production"
-  }
+command = "npm run build:prod"
+publish = "dist"
 
 [context.deployment-preview]
-  command = "npm run build:prod"
-  publish = "dist"
-  environment = {
-    SUPABASE_URL = "${SUPABASE_URL}"
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-    WEATHER_API_KEY = "${WEATHER_API_KEY}"
-    NODE_ENV = "preview"
-  }
+command = "npm run build:prod"
+publish = "dist"
 
 [context.branch-deploy]
-  command = "npm run build:prod"
-  publish = "dist"
-  environment = {
-    SUPABASE_URL = "${SUPABASE_URL}"
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-    WEATHER_API_KEY = "${WEATHER_API_KEY}"
-    NODE_ENV = "development"
-  }
+command = "npm run build:prod"
+publish = "dist"
 
 [dev]
-  command = "npm run dev"
-  port = 5173
-  environment = {
-    SUPABASE_URL = "${SUPABASE_URL}"
-    SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
-    WEATHER_API_KEY = "${WEATHER_API_KEY}"
-    NODE_ENV = "development"
-  }
+command = "npm run dev"
+port = 5173
