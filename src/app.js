@@ -384,22 +384,20 @@ export async function testDatabaseConnection() {
         console.log('Using URL:', import.meta.env.VITE_SUPABASE_URL);
         
         // Test connection by checking if we can access the database
-        const { data, error } = await supabase
-            .from('chores')
-            .select('id')
-            .limit(1)
-            .single()
-            .then(response => {
-                // Add CORS headers to the response
-                if (response.error) {
-                    throw response.error;
-                }
-                return response;
-            })
-            .catch(error => {
-                console.error('Supabase request error:', error);
-                throw error;
-            });
+        const response = await fetch('/api/supabase/rest/v1/chores?select=id&limit=1', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return { data, error: null };
 
         if (error) {
             console.error('Database connection test failed:', error);

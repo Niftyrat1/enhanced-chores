@@ -25,6 +25,16 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
+    server: {
+      proxy: {
+        '/api/supabase': {
+          target: env.VITE_SUPABASE_URL || 'http://localhost:54321',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/supabase/, '')
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
