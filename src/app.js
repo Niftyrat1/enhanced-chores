@@ -314,14 +314,14 @@ function toggleTheme() {
     }
 }
 
-// Function to open modal
+// Modal functions
 function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+    document.getElementById(modalId).style.display = 'flex';
 }
 
-// Function to close modal
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    document.getElementById(modalId).style.display = 'none';
+    document.getElementById('addChoreForm').reset();
 }
 
 // Core Functions
