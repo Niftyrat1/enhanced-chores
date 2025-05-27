@@ -6,7 +6,34 @@ const ENV = {
     SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
 };
 
-// Initialize Supabase client with CORS configuration
+// Custom fetch implementation with CORS handling
+const customFetch = async (url, options = {}) => {
+    try {
+        const response = await fetch(url, {
+            ...options,
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+                ...options.headers,
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response;
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+    }
+};
+
+// Initialize Supabase client with custom fetch
 export const supabase = createClient(ENV.SUPABASE_URL || 'http://localhost:54321', ENV.SUPABASE_ANON_KEY || 'your-anon-key', {
     auth: {
         autoRefreshToken: true,
@@ -14,21 +41,7 @@ export const supabase = createClient(ENV.SUPABASE_URL || 'http://localhost:54321
         detectSessionInUrl: true
     },
     global: {
-        headers: {
-            'x-requested-with': 'XMLHttpRequest',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        },
-        fetch: async (...args) => {
-            const [url, options] = args;
-            const response = await fetch(url, {
-                ...options,
-                mode: 'cors',
-                credentials: 'include'
-            });
-            return response;
-        }
+        fetch: customFetch
     }
 });
 

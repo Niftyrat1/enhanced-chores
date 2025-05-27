@@ -388,7 +388,18 @@ export async function testDatabaseConnection() {
             .from('chores')
             .select('id')
             .limit(1)
-            .single();
+            .single()
+            .then(response => {
+                // Add CORS headers to the response
+                if (response.error) {
+                    throw response.error;
+                }
+                return response;
+            })
+            .catch(error => {
+                console.error('Supabase request error:', error);
+                throw error;
+            });
 
         if (error) {
             console.error('Database connection test failed:', error);
