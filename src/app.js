@@ -60,6 +60,9 @@ const ENV = {
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
 };
 
+// Export all functions
+export * from './app.js';
+
 // Calculate chore points based on various factors
 function calculateChorePoints(chore) {
     const basePoints = 10; // Base points for any chore
@@ -154,8 +157,8 @@ async function addChore() {
         closeModal('addChoreModal');
         
         // Update UI
-        updateChoreList();
-        updatePoints();
+        updateChoreList(supabase);
+        updatePoints(supabase);
         
         alert('Chore added successfully!');
     } catch (error) {
@@ -166,6 +169,7 @@ async function addChore() {
 }
 
 // Update chore list
+async function updateChoreList(supabase, categoryFilter, statusFilter, searchInput) {
 async function updateChoreList(categoryFilter, statusFilter, searchInput) {
     try {
         const query = supabase
