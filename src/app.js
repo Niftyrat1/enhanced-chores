@@ -1,9 +1,6 @@
 // Import required packages
 import fuzzySearch from 'fuzzy-search';
 
-import { createClient } from '@supabase/supabase-js';
-import fuzzySearch from 'fuzzy-search';
-
 // Helper function for fuzzy search
 function searchChores(query, chores) {
     const searcher = new fuzzySearch(query, ['title', 'category']);
@@ -11,7 +8,7 @@ function searchChores(query, chores) {
 }
 
 // Core Configuration
-export const ACHIEVEMENT_THRESHOLDS = {
+const ACHIEVEMENT_THRESHOLDS = {
     points: {
         daily: [50, 100, 200, 500],
         weekly: [200, 500, 1000, 2000],
@@ -24,6 +21,12 @@ export const ACHIEVEMENT_THRESHOLDS = {
     },
     categories: [5, 10, 20, 50],
     challenges: [1, 3, 5, 10]
+};
+
+// Export functions and configurations
+export {
+    searchChores,
+    ACHIEVEMENT_THRESHOLDS
 };
 
 // Environment Configuration
