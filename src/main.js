@@ -1,5 +1,5 @@
 import { supabase } from './config/supabase.js';
-import { initializeSupabase, initializeTheme } from './app.js';
+import { initializeSupabase, initializeTheme, testDatabaseConnection } from './app.js';
 
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -14,6 +14,20 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // Initialize Supabase
         await initializeSupabase();
+
+        // Add test database button functionality
+        const testDbButton = document.getElementById('testDbButton');
+        if (testDbButton) {
+            testDbButton.addEventListener('click', async () => {
+                try {
+                    await testDatabaseConnection();
+                    alert('Database connection test successful!');
+                } catch (error) {
+                    alert(`Database connection test failed: ${error.message}`);
+                    console.error('Database test error:', error);
+                }
+            });
+        }
         
         // Initialize UI components
         await initializeUI();

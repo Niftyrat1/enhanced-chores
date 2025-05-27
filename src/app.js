@@ -378,17 +378,36 @@ function closeModal(modalId) {
 }
 
 // Core Functions
+export async function testDatabaseConnection() {
+    try {
+        console.log('Testing database connection...');
+        console.log('Using URL:', import.meta.env.VITE_SUPABASE_URL);
+        
+        // Test connection by checking if we can access the database
+        const { data, error } = await supabase
+            .from('chores')
+            .select('id')
+            .limit(1)
+            .single();
+
+        if (error) {
+            console.error('Database connection test failed:', error);
+            throw error;
+        }
+
+        console.log('Database connection test successful!');
+        return true;
+    } catch (error) {
+        console.error('Database connection test error:', error);
+        throw error;
+    }
+}
+
 export async function initializeSupabase() {
     try {
         // Test connection
         try {
-            console.log('Attempting to connect to Supabase...');
-            console.log('Using URL:', import.meta.env.VITE_SUPABASE_URL);
-            
-            const { data, error } = await supabase
-                .from('chores')
-                .select('id')
-                .single();
+            await testDatabaseConnection();
 
             if (error) {
                 console.error('Database connection error:', error);
