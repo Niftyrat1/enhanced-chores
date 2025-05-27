@@ -42,7 +42,7 @@
     "@testing-library/dom": "^8.19.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^29.5.11",
-    "@types/chart.js": "^2.9.43"
+    "@types/chart.js": "^2.9.0"
   },
   "eslintConfig": {
     "extends": [
