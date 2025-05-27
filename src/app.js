@@ -1,99 +1,13 @@
-'use strict';
-
-// Import required packages
-import fuzzySearch from 'fuzzy-search';
-import { supabase } from './config/supabase.js';
-
-// Core Configuration
-const ACHIEVEMENT_THRESHOLDS = {
-    points: {
-        daily: [50, 100, 200, 500],
-        weekly: [200, 500, 1000, 2000],
-        monthly: [1000, 2500, 5000, 10000]
-    },
-    streaks: {
-        daily: [7, 14, 30, 90],
-        weekly: [4, 8, 12, 24],
-        monthly: [3, 6, 12, 24]
-    },
-    categories: [5, 10, 20, 50],
-    challenges: [1, 3, 5, 10]
-};
-
-// Points System Configuration
-const POINTS_SYSTEM = {
-    frequency: {
-        daily: 1,
-        weekly: 2,
-        monthly: 3,
-        once: 1
-    },
-    difficulty: {
-        easy: 1,
-        medium: 1.5,
-        hard: 2
-    },
-    priority: {
-        low: 1,
-        medium: 1.5,
-        high: 2,
-        urgent: 2.5
-    },
-    timeOfDay: {
-        morning: 1.2,
-        afternoon: 1,
-        evening: 0.8,
-        night: 1.5
-    },
-    seasonalSchedule: {
-        spring: 1.1,
-        summer: 1.2,
-        fall: 1.1,
-        winter: 0.9,
-        none: 1
-    }
-};
-
 // Environment Configuration
 const ENV = {
-    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL',
-    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_KEY',
-    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_WEATHER_API_KEY'
+    SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
+    WEATHER_API_KEY: process.env.VITE_WEATHER_API_KEY
 };
 
-// Calculate chore points based on various factors
-function calculateChorePoints(chore) {
-    const basePoints = 10; // Base points for any chore
-    
-    // Calculate multipliers
-    const frequencyMultiplier = POINTS_SYSTEM.frequency[chore.frequency] || 1;
-    const difficultyMultiplier = POINTS_SYSTEM.difficulty[chore.difficulty] || 1;
-    const priorityMultiplier = POINTS_SYSTEM.priority[chore.priority] || 1;
-    const timeMultiplier = POINTS_SYSTEM.timeOfDay[chore.time_of_day] || 1;
-    const seasonalMultiplier = POINTS_SYSTEM.seasonalSchedule[chore.seasonal_schedule] || 1;
-    
-    // Calculate total points
-    return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
-}
-
-// Function to populate assignee dropdown
-async function populateAssignees() {
-    const { data: users, error } = await supabase
-        .from('users')
-        .select('id, name')
-        .order('name');
-
-    if (error) throw error;
-
-    const assigneeSelect = document.getElementById('choreAssignee');
-    assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
-    
-    users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = user.name;
-        assigneeSelect.appendChild(option);
-    });
+// Check if required environment variables are set
+if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
+    throw new Error('Supabase environment variables are not configured');
 }
 
 // Function to add a new chore
@@ -166,59 +80,83 @@ async function addChore() {
     }
 }
 
-// Update chore list
-async function updateChoreList(supabase, categoryFilter, statusFilter, searchInput) {
-    try {
-        const query = supabase
-            .from('chores')
-            .select('*')
-            .order('priority', { ascending: false })
-            .order('due_date');
+// Function to calculate chore points
+function calculateChorePoints(chore) {
+    const basePoints = 10;
+    const frequencyMultiplier = POINTS_SYSTEM.frequency[chore.frequency] || 1;
+    const difficultyMultiplier = POINTS_SYSTEM.difficulty[chore.difficulty] || 1;
+    const priorityMultiplier = POINTS_SYSTEM.priority[chore.priority] || 1;
+    const timeMultiplier = POINTS_SYSTEM.timeOfDay[chore.time_of_day] || 1;
+    const seasonalMultiplier = POINTS_SYSTEM.seasonalSchedule[chore.seasonal_schedule] || 1;
+    return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
+}
 
+// Function to populate assignee dropdown
+async function populateAssignees() {
+    const { data, error } = await supabase.from('users').select('id, name');
+    if (error) throw error;
+    
+    const assigneeSelect = document.getElementById('choreAssignee');
+    if (!assigneeSelect) return;
+    
+    assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
+    data.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.name;
+        assigneeSelect.appendChild(option);
+    });
+}
+
+// Function to update chore list
+async function updateChoreList(supabase, categoryFilter = '', statusFilter = '', searchInput = '') {
+    try {
+        // Build query
+        let query = supabase.from('chores').select('*');
+        
+        // Apply filters
         if (categoryFilter) {
             query = query.eq('category', categoryFilter);
         }
-
         if (statusFilter) {
             query = query.eq('status', statusFilter);
         }
-
-        if (searchInput) {
-            query = query.ilike('title', `%${searchInput}%`);
-        }
-
-        const { data: chores, error } = await query;
-
+        
+        // Get data
+        const { data, error } = await query;
         if (error) throw error;
-
-        const choresContainer = document.querySelector('.chores-list');
-        choresContainer.innerHTML = '';
-
-        chores.forEach(chore => {
-            const choreItem = document.createElement('div');
-            choreItem.className = 'chore-item bg-gray-800 rounded-lg p-4';
-            choreItem.innerHTML = `
-                <div class="chore-details">
-                    <h3 class="text-lg font-semibold">${chore.title}</h3>
-                    <div class="chore-meta text-sm text-gray-400">
-                        <span class="category-${chore.category}">${chore.category}</span>
-                        <span>•</span>
-                        <span>${chore.priority}</span>
-                        <span>•</span>
-                        <span>${chore.frequency}</span>
-                    </div>
-                </div>
-                <div class="chore-actions">
-                    <button onclick="markComplete(${chore.id})" class="btn btn-primary">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button onclick="skipChore(${chore.id})" class="btn btn-secondary">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-            choresContainer.appendChild(choreItem);
+        
+        // Filter by search
+        const filteredChores = data.filter(chore => 
+            chore.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+            chore.category.toLowerCase().includes(searchInput.toLowerCase()) ||
+            chore.notes.toLowerCase().includes(searchInput.toLowerCase())
+        );
+        
+        // Sort by due date
+        filteredChores.sort((a, b) => {
+            const dateA = new Date(a.due_date || '').getTime();
+            const dateB = new Date(b.due_date || '').getTime();
+            return dateA - dateB;
         });
+        
+        // Update UI
+        const choreList = document.getElementById('choreList');
+        if (!choreList) return;
+        
+        choreList.innerHTML = filteredChores.map(chore => `
+            <div class="chore-item ${chore.status}">
+                <h3>${chore.title}</h3>
+                <p>Category: ${chore.category}</p>
+                <p>Due: ${chore.due_date ? moment(chore.due_date).format('MMM D, YYYY') : 'No due date'}</p>
+                <p>Points: ${chore.points}</p>
+                <div class="chore-actions">
+                    <button onclick="markChoreComplete('${chore.id}')">Complete</button>
+                    <button onclick="skipChore('${chore.id}')">Skip</button>
+                </div>
+            </div>
+        `).join('');
+        
     } catch (error) {
         console.error('Error updating chore list:', error);
     }
@@ -229,18 +167,14 @@ async function markChoreComplete(choreId) {
     try {
         const { error } = await supabase
             .from('chores')
-            .update({ status: 'completed', completed_at: new Date().toISOString() })
+            .update({ status: 'completed' })
             .eq('id', choreId);
-
-        if (error) throw error;
-
-        updateChoreList();
-        updatePoints();
         
-        alert('Chore marked as complete!');
+        if (error) throw error;
+        updateChoreList(supabase);
+        updatePoints(supabase);
     } catch (error) {
-        console.error('Error marking chore as complete:', error);
-        alert('Error marking chore as complete: ' + error.message);
+        console.error('Error marking chore complete:', error);
     }
 }
 
@@ -251,292 +185,151 @@ async function skipChore(choreId) {
             .from('chores')
             .update({ status: 'skipped' })
             .eq('id', choreId);
-
-        if (error) throw error;
-
-        updateChoreList();
         
-        alert('Chore skipped!');
+        if (error) throw error;
+        updateChoreList(supabase);
     } catch (error) {
         console.error('Error skipping chore:', error);
-        alert('Error skipping chore: ' + error.message);
     }
 }
 
 // Function to update points display
 async function updatePoints() {
-    const today = new Date().toISOString().split('T')[0];
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    const monthStart = new Date();
-    monthStart.setDate(1);
-
-    const queries = [
-        supabase
+    try {
+        const { data, error } = await supabase
             .from('chores')
-            .select('points')
-            .eq('status', 'completed')
-            .gte('completed_at', today),
-        supabase
-            .from('chores')
-            .select('points')
-            .eq('status', 'completed')
-            .gte('completed_at', weekStart.toISOString()),
-        supabase
-            .from('chores')
-            .select('points')
-            .eq('status', 'completed')
-            .gte('completed_at', monthStart.toISOString())
-    ];
-
-    const [todayRes, weekRes, monthRes] = await Promise.all(queries);
-
-    const todayPoints = todayRes.data.reduce((sum, chore) => sum + chore.points, 0);
-    const weekPoints = weekRes.data.reduce((sum, chore) => sum + chore.points, 0);
-    const monthPoints = monthRes.data.reduce((sum, chore) => sum + chore.points, 0);
-
-    document.getElementById('todayPoints').textContent = todayPoints;
-    document.getElementById('weeklyPoints').textContent = weekPoints;
-    document.getElementById('monthlyPoints').textContent = monthPoints;
-
-    updateProgressBars(todayPoints, weekPoints, monthPoints);
+            .select('points, status')
+            .eq('status', 'completed');
+            
+        if (error) throw error;
+        
+        const totalPoints = data.reduce((sum, chore) => sum + chore.points, 0);
+        
+        const todayPoints = data
+            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'day'))
+            .reduce((sum, chore) => sum + chore.points, 0);
+        
+        const weekPoints = data
+            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'week'))
+            .reduce((sum, chore) => sum + chore.points, 0);
+        
+        const monthPoints = data
+            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'month'))
+            .reduce((sum, chore) => sum + chore.points, 0);
+        
+        updateProgressBars(todayPoints, weekPoints, monthPoints);
+        
+        document.getElementById('totalPoints').textContent = totalPoints.toString();
+        document.getElementById('todayPoints').textContent = todayPoints.toString();
+        document.getElementById('weekPoints').textContent = weekPoints.toString();
+        document.getElementById('monthPoints').textContent = monthPoints.toString();
+        
+    } catch (error) {
+        console.error('Error updating points:', error);
+    }
 }
 
 // Function to update progress bars
 function updateProgressBars(todayPoints, weekPoints, monthPoints) {
-    const updateBar = (elementId, points, goal) => {
-        const percentage = Math.min((points / goal) * 100, 100);
-        document.getElementById(elementId).style.width = `${percentage}%`;
-    };
-
-    updateBar('todayProgress', todayPoints, 100);
-    updateBar('weeklyProgress', weekPoints, 500);
-    updateBar('monthlyProgress', monthPoints, 2000);
+    const todayBar = document.getElementById('todayProgress');
+    const weekBar = document.getElementById('weekProgress');
+    const monthBar = document.getElementById('monthProgress');
+    
+    const todayTarget = 100; // Daily target points
+    const weekTarget = 500; // Weekly target points
+    const monthTarget = 2000; // Monthly target points
+    
+    todayBar.style.width = `${(todayPoints / todayTarget) * 100}%`;
+    weekBar.style.width = `${(weekPoints / weekTarget) * 100}%`;
+    monthBar.style.width = `${(monthPoints / monthTarget) * 100}%`;
 }
 
 // Function to toggle theme
-function toggleTheme() {
-    try {
-        const themeIcon = document.getElementById('themeIcon');
-        const themeText = document.getElementById('themeText');
+document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+});
 
-        if (!themeIcon || !themeText) {
-            throw new Error('Theme toggle elements not found');
-        }
-
-        document.body.classList.toggle('dark');
-        document.body.classList.toggle('light');
-        
-        const isDark = document.body.classList.contains('dark');
-        themeIcon.textContent = isDark ? '☀️' : '🌙';
-        themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-
-        // Save theme preference
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    } catch (error) {
-        console.error('Error toggling theme:', error);
-        alert('Error toggling theme: ' + error.message);
-    }
-}
-
-// Theme functions
-export function initializeTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    if (!themeToggle) {
-        console.error('Theme toggle button not found');
-        return;
-    }
-
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.body.classList.toggle('dark', savedTheme === 'dark');
-        document.body.classList.toggle('light', savedTheme !== 'dark');
-        
-        const themeIcon = document.getElementById('themeIcon');
-        const themeText = document.getElementById('themeText');
-        
-        if (themeIcon && themeText) {
-            const isDark = savedTheme === 'dark';
-            themeIcon.textContent = isDark ? '☀️' : '🌙';
-            themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        }
-    }
-
-    // Add theme toggle event listener
-    themeToggle.addEventListener('click', toggleTheme);
+// Initialize theme
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.toggle('dark-theme', savedTheme === 'dark');
 }
 
 // Modal functions
 function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'flex';
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'block';
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-    document.getElementById('addChoreForm').reset();
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
 }
 
 // Core Functions
-export async function testDatabaseConnection() {
+async function testDatabaseConnection() {
     try {
-        console.log('Testing database connection...');
-        console.log('Using URL:', import.meta.env.VITE_SUPABASE_URL);
-        
-        // Test connection by checking if we can access the database
-        const response = await fetch('/api/supabase/rest/v1/chores?select=id&limit=1', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return { data, error: null };
-
-        if (error) {
-            console.error('Database connection test failed:', error);
-            throw error;
-        }
-
-        console.log('Database connection test successful!');
-        return true;
+        const { data, error } = await supabase.from('chores').select('id').limit(1);
+        if (error) throw error;
+        console.log('Database connection successful');
     } catch (error) {
-        console.error('Database connection test error:', error);
-        throw error;
+        console.error('Database connection failed:', error);
     }
 }
 
-export async function initializeSupabase() {
+async function initializeSupabase() {
     try {
-        // Test connection
-        try {
-            await testDatabaseConnection();
-
-            if (error) {
-                console.error('Database connection error:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    details: error.details,
-                    hint: error.hint,
-                    code: error.code
-                });
-                throw new Error('Failed to connect to database');
-            }
-            
-            console.log('Connected to database successfully');
-        } catch (error) {
-            console.error('Error testing database connection:', error);
-            if (error.message) {
-                console.error('Error details:', {
-                    message: error.message,
-                    details: error.details,
-                    hint: error.hint,
-                    code: error.code
-                });
-            }
-            throw error;
-        }
-
-        // Initialize additional features
-        try {
-            await setupRealtimeSubscriptions();
-            console.log('Realtime subscriptions initialized successfully');
-        } catch (initError) {
-            console.error('Error initializing features:', initError);
-            throw new Error('Failed to initialize features');
-        }
+        await testDatabaseConnection();
+        await setupRealtimeSubscriptions();
+        await initializeTheme();
+        await updateChoreList(supabase);
+        await updatePoints();
+        await loadCategories();
+        await loadWeatherData();
+        await loadAchievements();
     } catch (error) {
-        console.error('Initialization error:', error);
-        throw error;
+        console.error('Error initializing app:', error);
     }
 }
 
 // Helper functions
 async function setupRealtimeSubscriptions() {
-    try {
-        // Listen for chore changes
-        supabase
-            .channel('chore-changes')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'chores',
-            }, async (payload) => {
-                console.log('Change received:', payload);
-                const categoryFilter = document.getElementById('categoryFilter').value;
-                const statusFilter = document.getElementById('statusFilter').value;
-                const searchInput = document.getElementById('searchInput').value.toLowerCase();
-                await supabase
-                .from('points_stats')
-                .select('*')
-                .single();
-                updateChoreList(categoryFilter, statusFilter, searchInput);
-            })
-            .subscribe();
-
-        // Listen for points changes
-    } catch (error) {
-        console.error('Error setting up realtime subscriptions:', error);
-    }
+    supabase
+        .channel('chore-updates')
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'chores',
+        }, () => {
+            updateChoreList(supabase);
+            updatePoints(supabase);
+        })
+        .subscribe();
 }
-
-
-
-// Mark chore as complete (real-time)
-async function markChoreComplete2(choreId) {
-    try {
-        const { data, error } = await supabase
-            .from('chores')
-            .update({ status: 'completed' })
-            .eq('id', choreId);
-
-        if (error) throw error;
-
-        updateChoreList();
-        updatePoints();
-    } catch (error) {
-        console.error('Error marking chore complete:', error);
-    }
-}
-
-
 
 // Category Management
 async function loadCategories() {
     try {
-        const { data: categories, error: catError } = await supabase
-            .from('categories')
-            .select('*');
-
-        if (catError) {
-            console.error('Error loading categories:', catError);
-            return;
-        }
-
-        updateCategorySelect('categoryFilter', categories);
-        updateCategorySelect('choreCategory', categories);
-        await loadWeatherData();
+        const { data, error } = await supabase.from('categories').select('*');
+        if (error) throw error;
+        
+        updateCategorySelect('addChoreCategory', data);
+        updateCategorySelect('editChoreCategory', data);
     } catch (error) {
-        console.error('Error in loadCategories:', error);
+        console.error('Error loading categories:', error);
     }
 }
 
 function updateCategorySelect(selectId, categories) {
     const select = document.getElementById(selectId);
     if (!select) return;
-
-    select.innerHTML = '';
+    
+    select.innerHTML = '<option value="">Select Category</option>';
     categories.forEach(category => {
         const option = document.createElement('option');
-        option.value = category.id;
+        option.value = category.name;
         option.textContent = category.name;
-        option.className = `category-${category.name.toLowerCase()}`;
         select.appendChild(option);
     });
 }
@@ -544,72 +337,30 @@ function updateCategorySelect(selectId, categories) {
 // Weather Integration
 async function loadWeatherData() {
     try {
-        if (!ENV.WEATHER_API_KEY) {
-            console.warn('Weather API key not configured');
-            return;
-        }
-
-        const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-
-        const { lat, lon } = position.coords;
-        const weatherResponse = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${ENV.WEATHER_API_KEY}&units=metric`
-        );
-        const weatherData = await weatherResponse.json();
-
-        updateWeatherUI(weatherData);
-        updateSuggestedChores();
+        const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${ENV.WEATHER_API_KEY}&q=auto:ip`);
+        const data = await response.json();
+        updateWeatherUI(data);
     } catch (error) {
         console.error('Error loading weather data:', error);
     }
 }
 
 function updateWeatherUI(weatherData) {
-    const weatherSuggestions = document.getElementById('weatherSuggestions');
-    if (!weatherSuggestions) return;
-
-    const mainWeather = weatherData.weather[0].main;
-    const description = weatherData.weather[0].description;
-    const temp = Math.round(weatherData.main.temp);
-
-    weatherSuggestions.innerHTML = `
-        <div class="weather-suggestion">
-            <i class="fas fa-${getWeatherIcon(mainWeather)} weather-icon"></i>
-            <div>
-                <span>${description}</span>
-                <span class="weather-temp">${temp}°C</span>
-            </div>
-            ${getWeatherBasedSuggestions(mainWeather)}
-        </div>
-    `;
+    document.getElementById('weatherTemp').textContent = `${weatherData.current.temp_c}°C`;
+    document.getElementById('weatherCondition').textContent = weatherData.current.condition.text;
+    document.getElementById('weatherIcon').src = weatherData.current.condition.icon;
 }
-
-
 
 // Achievement System
 async function loadAchievements() {
     try {
-        const achievementsDiv = document.getElementById('achievements');
-        if (!achievementsDiv) return;
-
-        const achievements = [
-            // Points achievements
-            ...ACHIEVEMENT_THRESHOLDS.points.daily.map(points => createPointsAchievement('daily', points)),
-            ...ACHIEVEMENT_THRESHOLDS.points.weekly.map(points => createPointsAchievement('weekly', points)),
-            ...ACHIEVEMENT_THRESHOLDS.points.monthly.map(points => createPointsAchievement('monthly', points)),
-            // Streak achievements
-            ...ACHIEVEMENT_THRESHOLDS.streaks.daily.map(days => createStreakAchievement('daily', days)),
-            ...ACHIEVEMENT_THRESHOLDS.streaks.weekly.map(weeks => createStreakAchievement('weekly', weeks)),
-            ...ACHIEVEMENT_THRESHOLDS.streaks.monthly.map(months => createStreakAchievement('monthly', months)),
-            // Category achievements
-            ...ACHIEVEMENT_THRESHOLDS.categories.map(categories => createCategoryAchievement(categories)),
-            // Challenge achievements
-            ...ACHIEVEMENT_THRESHOLDS.challenges.map(challenges => createChallengeAchievement(challenges))
-        ];
-
-        achievementsDiv.innerHTML = achievements.map(achievement => createAchievementHTML(achievement)).join('');
+        const { data, error } = await supabase.from('achievements').select('*');
+        if (error) throw error;
+        
+        const achievementList = document.getElementById('achievementList');
+        if (!achievementList) return;
+        
+        achievementList.innerHTML = data.map(achievement => createAchievementHTML(achievement)).join('');
     } catch (error) {
         console.error('Error loading achievements:', error);
     }
@@ -617,76 +368,52 @@ async function loadAchievements() {
 
 function createPointsAchievement(period, points) {
     return {
-        id: `${period}-points-${points}`,
-        title: `${period.charAt(0).toUpperCase() + period.slice(1)} Master (${points} points)`,
-        description: `Complete ${points} points in a ${period}`,
         type: 'points',
         period,
-        threshold: points,
-        icon: 'fas fa-trophy'
+        value: points,
+        description: `Earn ${points} points in ${period}`,
+        achieved: false
     };
 }
 
 function createStreakAchievement(period, streak) {
     return {
-        id: `${period}-streak-${streak}`,
-        title: `${period.charAt(0).toUpperCase() + period.slice(1)} Streak (${streak} ${period})`,
-        description: `Complete chores for ${streak} consecutive ${period}`,
         type: 'streak',
         period,
-        threshold: streak,
-        icon: 'fas fa-fire'
+        value: streak,
+        description: `Complete chores for ${streak} consecutive ${period}`,
+        achieved: false
     };
 }
 
 function createCategoryAchievement(categories) {
     return {
-        id: `category-master-${categories}`,
-        title: `Category Master (${categories} categories)`,
-        description: `Complete all chores in ${categories} categories`,
         type: 'category',
-        period: 'all',
-        threshold: categories,
-        icon: 'fas fa-crown'
+        value: categories.length,
+        description: `Complete chores in ${categories.length} different categories`,
+        achieved: false
     };
 }
 
 function createChallengeAchievement(challenges) {
     return {
-        id: `challenge-master-${challenges}`,
-        title: `Challenge Master (${challenges} challenges)`,
-        description: `Complete ${challenges} family challenges`,
         type: 'challenge',
-        period: 'all',
-        threshold: challenges,
-        icon: 'fas fa-award'
+        value: challenges.length,
+        description: `Complete ${challenges.length} challenges`,
+        achieved: false
     };
 }
 
 function createAchievementHTML(achievement) {
+    const className = achievement.achieved ? 'achievement-completed' : 'achievement-pending';
     return `
-        <div class="achievement-card ${achievement.type}-${achievement.period} ${achievement.threshold}"
-             onclick="viewAchievement('${achievement.id}')">
-            <i class="${achievement.icon} achievement-icon"></i>
-            <h4>${achievement.title}</h4>
-            <p>${achievement.description}</p>
-            <div class="achievement-progress">
-                <span>0/${achievement.threshold}</span>
-            </div>
+        <div class="achievement ${className}">
+            <h3>${achievement.description}</h3>
+            <p>Period: ${achievement.period}</p>
+            <p>Progress: ${achievement.achieved ? 'Completed' : 'Pending'}</p>
         </div>
     `;
 }
 
 // Initialization
-async function initializeApp() {
-    await initializeSupabase();
-    await loadCategories();
-    await loadAchievements();
-    await loadChallenges();
-    initializeCharts();
-    setupSwipeActions();
-    setupVoiceCommands();
-}
-
-// Start the app
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', initializeSupabase);
