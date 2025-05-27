@@ -1,17 +1,18 @@
 [build]
-command = "npm run build:prod"
+command = "npm install --legacy-peer-deps && npm run build:prod"
 publish = "dist"
 
 [context.production]
-command = "npm run build:prod"
+command = "npm install --legacy-peer-deps && npm run build:prod"
 publish = "dist"
 
 [context.deployment-preview]
-command = "npm run build:prod"
+command = "npm install --legacy-peer-deps && npm run build:prod"
 publish = "dist"
 
 [context.branch-deploy]
-command = "npm run build:prod"
+command = "npm install --legacy-peer-deps && npm run build"
+base = "/"
 publish = "dist"
 
 [dev]
