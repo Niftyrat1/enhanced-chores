@@ -284,16 +284,27 @@ export function closeModal(modalId) {
     if (modal) modal.style.display = 'none';
 }
 
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
 // Core Functions
 export async function testDatabaseConnection() {
     try {
-        const { data, error } = await supabase.from('chores').select('id').limit(1);
+        const { data, error } = await supabase
+            .from('chores')
+            .select('*')
+            .limit(1);
+
         if (error) throw error;
-        console.log('Database connection successful');
-        return true;
+        console.log('Database connection test successful');
     } catch (error) {
-        console.error('Database connection failed:', error);
-        return false;
+        console.error('Database connection test failed:', error);
+        throw error;
     }
 }
 
@@ -302,7 +313,7 @@ export async function initializeSupabase() {
         await testDatabaseConnection();
         await setupRealtimeSubscriptions();
         await initializeTheme();
-        await updateChoreList(supabase);
+        await updateChoreList();
         await updatePoints();
         await loadCategories();
         await loadWeatherData();

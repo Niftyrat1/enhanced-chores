@@ -9,6 +9,13 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Vite entry point -->
+    <script type="module">
+        import { initializeTheme } from '/src/app.js';
+        // Initialize theme when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+        });
+    </script>
     <script type="module" src="/src/main.js"></script>
     <!-- Custom styles -->
     <style>
