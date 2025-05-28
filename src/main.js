@@ -1,5 +1,5 @@
 import { supabase } from './config/supabase.js';
-import { initializeSupabase, initializeTheme, testDatabaseConnection } from './app.js';
+import { addChore, initializeSupabase, initializeTheme, testDatabaseConnection } from './app.js';
 
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
