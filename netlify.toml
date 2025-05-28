@@ -1,18 +1,17 @@
 [build]
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
-  environment = ["NETLIFY_EMAILS_DIRECTORY", "NETLIFY_EMAILS_SECRET", "VITE_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL", "VITE_WEATHER_API_KEY"]
 
 [context.production]
-  command = "npm install --legacy-peer-deps && npm run build:prod"
+  command = "npm run build"
   publish = "dist"
 
 [context.deployment-preview]
-  command = "npm install --legacy-peer-deps && npm run build:prod"
+  command = "npm run build"
   publish = "dist"
 
 [context.branch-deploy]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm run build"
   publish = "dist"
   base = "/"
 
