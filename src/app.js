@@ -10,8 +10,7 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured');
 }
 
-// Function to add a new chore
-async function addChore() {
+export async function addChore() {
     try {
         // Get form elements
         const form = document.getElementById('addChoreForm');
@@ -80,8 +79,7 @@ async function addChore() {
     }
 }
 
-// Function to calculate chore points
-function calculateChorePoints(chore) {
+export function calculateChorePoints(chore) {
     const basePoints = 10;
     const frequencyMultiplier = POINTS_SYSTEM.frequency[chore.frequency] || 1;
     const difficultyMultiplier = POINTS_SYSTEM.difficulty[chore.difficulty] || 1;
@@ -91,8 +89,7 @@ function calculateChorePoints(chore) {
     return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
 }
 
-// Function to populate assignee dropdown
-async function populateAssignees() {
+export async function populateAssignees() {
     const { data, error } = await supabase.from('users').select('id, name');
     if (error) throw error;
     
@@ -109,7 +106,7 @@ async function populateAssignees() {
 }
 
 // Function to update chore list
-async function updateChoreList(supabase, categoryFilter = '', statusFilter = '', searchInput = '') {
+export async function updateChoreList(supabase, categoryFilter = '', statusFilter = '', searchInput = '') {
     try {
         // Build query
         let query = supabase.from('chores').select('*');
@@ -162,8 +159,7 @@ async function updateChoreList(supabase, categoryFilter = '', statusFilter = '',
     }
 }
 
-// Function to mark chore as complete
-async function markChoreComplete(choreId) {
+export async function markChoreComplete(choreId) {
     try {
         const { error } = await supabase
             .from('chores')
@@ -178,15 +174,16 @@ async function markChoreComplete(choreId) {
     }
 }
 
-// Function to skip chore
-async function skipChore(choreId) {
+export async function skipChore(choreId) {
     try {
         const { error } = await supabase
             .from('chores')
             .update({ status: 'skipped' })
             .eq('id', choreId);
-        
+
         if (error) throw error;
+
+        // Update UI
         updateChoreList(supabase);
     } catch (error) {
         console.error('Error skipping chore:', error);
@@ -194,42 +191,62 @@ async function skipChore(choreId) {
 }
 
 // Function to update points display
-async function updatePoints() {
+export async function updatePoints() {
     try {
-        const { data, error } = await supabase
+        // Get today's date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get points for today
+        const { data: todayData, error: todayError } = await supabase
             .from('chores')
-            .select('points, status')
-            .eq('status', 'completed');
-            
-        if (error) throw error;
-        
-        const totalPoints = data.reduce((sum, chore) => sum + chore.points, 0);
-        
-        const todayPoints = data
-            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'day'))
-            .reduce((sum, chore) => sum + chore.points, 0);
-        
-        const weekPoints = data
-            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'week'))
-            .reduce((sum, chore) => sum + chore.points, 0);
-        
-        const monthPoints = data
-            .filter(chore => moment(chore.status_updated_at).isSame(moment(), 'month'))
-            .reduce((sum, chore) => sum + chore.points, 0);
-        
+            .select('points')
+            .eq('status', 'completed')
+            .gte('completed_at', today.toISOString())
+            .lte('completed_at', new Date(today.getTime() + 86400000).toISOString());
+
+        if (todayError) throw todayError;
+        const todayPoints = todayData.reduce((sum, chore) => sum + chore.points, 0);
+
+        // Get points for this week
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        const { data: weekData, error: weekError } = await supabase
+            .from('chores')
+            .select('points')
+            .eq('status', 'completed')
+            .gte('completed_at', weekStart.toISOString())
+            .lte('completed_at', new Date(weekStart.getTime() + 604800000).toISOString());
+
+        if (weekError) throw weekError;
+        const weekPoints = weekData.reduce((sum, chore) => sum + chore.points, 0);
+
+        // Get points for this month
+        const monthStart = new Date(today);
+        monthStart.setDate(1);
+        const { data: monthData, error: monthError } = await supabase
+            .from('chores')
+            .select('points')
+            .eq('status', 'completed')
+            .gte('completed_at', monthStart.toISOString())
+            .lte('completed_at', new Date(monthStart.getTime() + 2678400000).toISOString());
+
+        if (monthError) throw monthError;
+        const monthPoints = monthData.reduce((sum, chore) => sum + chore.points, 0);
+
+        // Update UI
+        document.getElementById('todayPoints').textContent = todayPoints;
+        document.getElementById('weekPoints').textContent = weekPoints;
+        document.getElementById('monthPoints').textContent = monthPoints;
+
+        // Update progress bars
         updateProgressBars(todayPoints, weekPoints, monthPoints);
-        
-        document.getElementById('totalPoints').textContent = totalPoints.toString();
-        document.getElementById('todayPoints').textContent = todayPoints.toString();
-        document.getElementById('weekPoints').textContent = weekPoints.toString();
-        document.getElementById('monthPoints').textContent = monthPoints.toString();
-        
     } catch (error) {
         console.error('Error updating points:', error);
     }
 }
 
-// Function to update progress bars
+export function updateProgressBars(todayPoints, weekPoints, monthPoints) {
 function updateProgressBars(todayPoints, weekPoints, monthPoints) {
     const todayBar = document.getElementById('todayProgress');
     const weekBar = document.getElementById('weekProgress');
@@ -248,37 +265,40 @@ function updateProgressBars(todayPoints, weekPoints, monthPoints) {
 document.getElementById('themeToggle').addEventListener('click', () => {
     document.body.classList.toggle('dark-theme');
     localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    updateTheme();
 });
 
-// Initialize theme
-function initializeTheme() {
+export function initializeTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+    updateTheme();
 }
 
 // Modal functions
-function openModal(modalId) {
+export function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'block';
 }
 
-function closeModal(modalId) {
+export function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
 }
 
 // Core Functions
-async function testDatabaseConnection() {
+export async function testDatabaseConnection() {
     try {
         const { data, error } = await supabase.from('chores').select('id').limit(1);
         if (error) throw error;
         console.log('Database connection successful');
+        return true;
     } catch (error) {
         console.error('Database connection failed:', error);
+        return false;
     }
 }
 
-async function initializeSupabase() {
+export async function initializeSupabase() {
     try {
         await testDatabaseConnection();
         await setupRealtimeSubscriptions();
@@ -294,7 +314,7 @@ async function initializeSupabase() {
 }
 
 // Helper functions
-async function setupRealtimeSubscriptions() {
+export async function setupRealtimeSubscriptions() {
     supabase
         .channel('chore-updates')
         .on('postgres_changes', {
@@ -309,7 +329,7 @@ async function setupRealtimeSubscriptions() {
 }
 
 // Category Management
-async function loadCategories() {
+export async function loadCategories() {
     try {
         const { data, error } = await supabase.from('categories').select('*');
         if (error) throw error;
@@ -321,7 +341,7 @@ async function loadCategories() {
     }
 }
 
-function updateCategorySelect(selectId, categories) {
+export function updateCategorySelect(selectId, categories) {
     const select = document.getElementById(selectId);
     if (!select) return;
     
@@ -335,7 +355,7 @@ function updateCategorySelect(selectId, categories) {
 }
 
 // Weather Integration
-async function loadWeatherData() {
+export async function loadWeatherData() {
     try {
         const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${ENV.WEATHER_API_KEY}&q=auto:ip`);
         const data = await response.json();
@@ -345,14 +365,14 @@ async function loadWeatherData() {
     }
 }
 
-function updateWeatherUI(weatherData) {
+export function updateWeatherUI(weatherData) {
     document.getElementById('weatherTemp').textContent = `${weatherData.current.temp_c}°C`;
     document.getElementById('weatherCondition').textContent = weatherData.current.condition.text;
     document.getElementById('weatherIcon').src = weatherData.current.condition.icon;
 }
 
 // Achievement System
-async function loadAchievements() {
+export async function loadAchievements() {
     try {
         const { data, error } = await supabase.from('achievements').select('*');
         if (error) throw error;
@@ -366,7 +386,7 @@ async function loadAchievements() {
     }
 }
 
-function createPointsAchievement(period, points) {
+export function createPointsAchievement(period, points) {
     return {
         type: 'points',
         period,
@@ -376,7 +396,7 @@ function createPointsAchievement(period, points) {
     };
 }
 
-function createStreakAchievement(period, streak) {
+export function createStreakAchievement(period, streak) {
     return {
         type: 'streak',
         period,
@@ -386,7 +406,7 @@ function createStreakAchievement(period, streak) {
     };
 }
 
-function createCategoryAchievement(categories) {
+export function createCategoryAchievement(categories) {
     return {
         type: 'category',
         value: categories.length,
@@ -395,7 +415,7 @@ function createCategoryAchievement(categories) {
     };
 }
 
-function createChallengeAchievement(challenges) {
+export function createChallengeAchievement(challenges) {
     return {
         type: 'challenge',
         value: challenges.length,
@@ -404,7 +424,7 @@ function createChallengeAchievement(challenges) {
     };
 }
 
-function createAchievementHTML(achievement) {
+export function createAchievementHTML(achievement) {
     const className = achievement.achieved ? 'achievement-completed' : 'achievement-pending';
     return `
         <div class="achievement ${className}">
