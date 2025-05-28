@@ -247,7 +247,6 @@ export async function updatePoints() {
 }
 
 export function updateProgressBars(todayPoints, weekPoints, monthPoints) {
-function updateProgressBars(todayPoints, weekPoints, monthPoints) {
     const todayBar = document.getElementById('todayProgress');
     const weekBar = document.getElementById('weekProgress');
     const monthBar = document.getElementById('monthProgress');
