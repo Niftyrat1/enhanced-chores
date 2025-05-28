@@ -1,8 +1,8 @@
 // Environment Configuration
 const ENV = {
-    SUPABASE_URL: process.env.VITE_SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
-    WEATHER_API_KEY: process.env.VITE_WEATHER_API_KEY
+    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
 // Check if required environment variables are set
