@@ -23,29 +23,22 @@
     "moment": "^2.29.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
     "@vitejs/plugin-react": "^4.2.1",
     "vite": "^4.5.14",
     "tailwindcss": "^3.4.1",
     "postcss": "^8.4.33",
     "autoprefixer": "^10.4.17",
     "@vitejs/plugin-legacy": "^4.0.2",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
-    "@typescript-eslint/parser": "^6.19.1",
-    "typescript": "^5.3.3",
     "eslint": "^8.56.0",
     "prettier": "^3.1.1",
     "jest": "^29.7.0",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/dom": "^8.19.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^29.5.11",
-    "@types/chart.js": "^2.9.0"
+    "@testing-library/user-event": "^13.5.0"
   },
   "eslintConfig": {
     "extends": [
       "plugin:react/recommended",
-      "plugin:@typescript-eslint/recommended",
       "plugin:prettier/recommended"
     ],
     "rules": {
