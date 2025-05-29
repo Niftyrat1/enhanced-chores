@@ -12,85 +12,6 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured');
 }
 
-export async function addChore() {
-    try {
-        // Get form elements
-        const form = document.getElementById('addChoreForm');
-        if (!form) throw new Error('Add chore form not found');
-
-        // Get form data
-        const choreData = {
-            title: form.querySelector('#choreName').value.trim(),
-            category: form.querySelector('#choreCategory').value.trim(),
-            assignee_id: form.querySelector('#choreAssignee').value,
-            frequency: form.querySelector('#choreFrequency').value,
-            difficulty: form.querySelector('#choreDifficulty').value,
-            priority: form.querySelector('#chorePriority').value,
-            time_of_day: form.querySelector('#timeOfDay').value,
-            seasonal_schedule: form.querySelector('#seasonalSchedule').value,
-            required_tools: form.querySelector('#requiredTools').value.trim(),
-            notes: form.querySelector('#choreNotes').value.trim(),
-            due_date: form.querySelector('#choreDueDate').value
-        };
-
-        // Validate required fields
-        if (!choreData.title || !choreData.category) {
-            throw new Error('Title and Category are required');
-        }
-
-        // Validate date
-        if (choreData.due_date) {
-            const dueDate = new Date(choreData.due_date);
-            if (isNaN(dueDate.getTime())) {
-                throw new Error('Invalid due date format');
-            }
-        }
-
-        // Validate required fields
-        const requiredFields = ['frequency', 'difficulty', 'priority', 'time_of_day', 'seasonal_schedule'];
-        const missingFields = requiredFields.filter(field => !choreData[field]);
-        if (missingFields.length > 0) {
-            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-        }
-
-        // Calculate points
-        const points = calculateChorePoints(choreData);
-        choreData.points = points;
-
-        // Insert into database
-        const { data, error } = await supabase
-            .from('chores')
-            .insert([choreData])
-            .select();
-
-        if (error) throw error;
-
-        // Clear form
-        form.reset();
-        closeModal('addChoreModal');
-        
-        // Update UI
-        updateChoreList(supabase);
-        updatePoints(supabase);
-        
-        alert('Chore added successfully!');
-    } catch (error) {
-        console.error('Error adding chore:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-        alert(`Error adding chore: ${errorMessage}`);
-    }
-}
-
-export function calculateChorePoints(chore) {
-    const basePoints = 10;
-    const frequencyMultiplier = POINTS_SYSTEM.frequency[chore.frequency] || 1;
-    const difficultyMultiplier = POINTS_SYSTEM.difficulty[chore.difficulty] || 1;
-    const priorityMultiplier = POINTS_SYSTEM.priority[chore.priority] || 1;
-    const timeMultiplier = POINTS_SYSTEM.timeOfDay[chore.time_of_day] || 1;
-    const seasonalMultiplier = POINTS_SYSTEM.seasonalSchedule[chore.seasonal_schedule] || 1;
-    return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
-}
-
 // Theme Management
 export function initializeTheme() {
     // Wait for DOM to be available
@@ -110,7 +31,7 @@ export function initializeTheme() {
         const newTheme = e.matches ? 'dark' : 'light';
         localStorage.setItem('theme', newTheme);
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
-        document.documentElement.classList.toggle('light', newTheme !== 'dark');
+        document.documentElement.classList.toggle('light', newTheme !== 'light');
     });
 }
 
@@ -149,6 +70,25 @@ export async function initializeUI() {
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         if (tabs.length > 0 && tabContents.length > 0) {
+            // Initialize tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-tab');
+                    const targetContent = document.getElementById(targetId);
+                    
+                    if (targetContent) {
+                        // Remove active classes from all tabs and contents
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        // Add active classes to selected tab and content
+                        tab.classList.add('active');
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+
+            // Initialize ARIA attributes
             tabs.forEach(tab => {
                 tab.setAttribute('role', 'tab');
                 tab.setAttribute('aria-selected', 'false');
