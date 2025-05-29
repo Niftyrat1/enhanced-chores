@@ -2,9 +2,9 @@ import { supabase } from './config/supabase.js';
 
 // Environment Configuration
 const ENV = {
-    SUPABASE_URL: window.VITE_SUPABASE_URL,
-    SUPABASE_ANON_KEY: window.VITE_SUPABASE_ANON_KEY,
-    WEATHER_API_KEY: window.VITE_WEATHER_API_KEY
+    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
 // Check if required environment variables are set
@@ -93,18 +93,264 @@ export function calculateChorePoints(chore) {
 
 // Theme Management
 export function initializeTheme() {
+    // Wait for DOM to be available
+    if (!document || !document.documentElement) {
+        return;
+    }
+
     // Get saved theme from localStorage or default to system preference
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     
     // Set theme
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    document.documentElement.classList.toggle('light', savedTheme !== 'dark');
     
     // Add theme change listener
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         const newTheme = e.matches ? 'dark' : 'light';
         localStorage.setItem('theme', newTheme);
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
+        document.documentElement.classList.toggle('light', newTheme !== 'dark');
     });
+}
+
+// Initialize UI components
+export async function initializeUI() {
+    try {
+        // Initialize points display
+        const pointsDisplay = document.getElementById('pointsDisplay');
+        if (pointsDisplay) {
+            pointsDisplay.textContent = '0 points';
+            pointsDisplay.setAttribute('role', 'status');
+            pointsDisplay.setAttribute('aria-live', 'polite');
+        }
+
+        // Initialize filters
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        if (categoryFilter && statusFilter) {
+            categoryFilter.value = '';
+            statusFilter.value = '';
+            
+            // Add ARIA attributes
+            categoryFilter.setAttribute('aria-label', 'Filter chores by category');
+            statusFilter.setAttribute('aria-label', 'Filter chores by status');
+        }
+
+        // Initialize search
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.setAttribute('aria-label', 'Search chores');
+            searchInput.setAttribute('placeholder', 'Search chores...');
+        }
+
+        // Initialize tabs
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        if (tabs.length > 0 && tabContents.length > 0) {
+            tabs.forEach(tab => {
+                tab.setAttribute('role', 'tab');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            tabContents.forEach(content => {
+                content.setAttribute('role', 'tabpanel');
+                content.setAttribute('hidden', 'true');
+            });
+
+            // Show first tab by default
+            tabs[0].setAttribute('aria-selected', 'true');
+            tabContents[0].removeAttribute('hidden');
+        }
+
+        // Initialize modals
+        const modals = document.querySelectorAll('.modal');
+        if (modals.length > 0) {
+            modals.forEach(modal => {
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-modal', 'true');
+                modal.setAttribute('hidden', 'true');
+            });
+        }
+
+        // Initialize forms
+        const forms = document.querySelectorAll('form');
+        if (forms.length > 0) {
+            forms.forEach(form => {
+                form.setAttribute('novalidate', '');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    validateForm(form);
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Error initializing UI:', error);
+        throw error;
+    }
+}
+
+// Form validation
+export function validateForm(form) {
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('invalid');
+        }
+    });
+
+    if (!isValid) {
+        const error = new Error('Please fill in all required fields');
+        error.name = 'ValidationError';
+        throw error;
+    }
+
+    // Handle form submission
+    const submitHandler = form.getAttribute('data-submit-handler');
+    if (submitHandler) {
+        const handler = window[submitHandler];
+        if (typeof handler === 'function') {
+            handler();
+        }
+    }
+}
+
+// Setup event listeners
+export function setupEventListeners() {
+    // Add chore button
+    const addChoreButton = document.getElementById('addChoreButton');
+    if (addChoreButton) {
+        addChoreButton.addEventListener('click', () => {
+            openModal('addChoreModal');
+        });
+    }
+
+    // Form submission
+    const addChoreForm = document.getElementById('addChoreForm');
+    if (addChoreForm) {
+        addChoreForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addChore();
+        });
+    }
+
+    // Filter changes
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', updateChoreList);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', updateChoreList);
+    }
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(updateChoreList, 300));
+    }
+}
+
+// Debounce function
+export function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Modal functions
+export function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.removeAttribute('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+export function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.setAttribute('hidden', '');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+}
+
+// Initialize Supabase
+export async function initializeSupabase() {
+    try {
+        // Verify connection
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        // Initialize auth state changes
+        supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                // User is signed in
+                const user = session.user;
+                console.log('User signed in:', user.email);
+                // Update UI with user info
+                updateUserInfo(user);
+            } else {
+                // User is signed out
+                console.log('User signed out');
+                // Clear user info from UI
+                clearUserInfo();
+            }
+        });
+
+        console.log('Supabase initialized successfully');
+    } catch (error) {
+        console.error('Error initializing Supabase:', error);
+        throw error;
+    }
+}
+
+// User info management
+export function updateUserInfo(user) {
+    const userDisplay = document.getElementById('userDisplay');
+    if (userDisplay) {
+        userDisplay.textContent = user.email;
+        userDisplay.removeAttribute('hidden');
+    }
+}
+
+export function clearUserInfo() {
+    const userDisplay = document.getElementById('userDisplay');
+    if (userDisplay) {
+        userDisplay.textContent = '';
+        userDisplay.setAttribute('hidden', '');
+    }
+}
+
+// Test database connection
+export async function testDatabaseConnection() {
+    try {
+        // Test by fetching a small amount of data
+        const { data, error } = await supabase
+            .from('chores')
+            .select('id')
+            .limit(1);
+
+        if (error) throw error;
+        console.log('Database connection test successful');
+        return true;
+    } catch (error) {
+        console.error('Database connection test failed:', error);
+        throw error;
+    }
 }
 
 export async function populateAssignees() {
@@ -287,47 +533,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 
 
 
-// Modal functions
-export function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'block';
-}
 
-export function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'none';
-}
-
-// Core Functions
-export async function testDatabaseConnection() {
-    try {
-        const { data, error } = await supabase
-            .from('chores')
-            .select('*')
-            .limit(1);
-
-        if (error) throw error;
-        console.log('Database connection test successful');
-    } catch (error) {
-        console.error('Database connection test failed:', error);
-        throw error;
-    }
-}
-
-export async function initializeSupabase() {
-    try {
-        await testDatabaseConnection();
-        await setupRealtimeSubscriptions();
-        await initializeTheme();
-        await updateChoreList();
-        await updatePoints();
-        await loadCategories();
-        await loadWeatherData();
-        await loadAchievements();
-    } catch (error) {
-        console.error('Error initializing app:', error);
-    }
-}
 
 // Helper functions
 export async function setupRealtimeSubscriptions() {

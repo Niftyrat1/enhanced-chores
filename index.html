@@ -9,22 +9,31 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Load environment variables -->
-    <script>
-        // Load environment variables
-        window.VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-        window.VITE_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
-    </script>
+
     <!-- Vite entry point -->
-    <script type="module" src="/src/main.js"></script>
     <script type="module">
-        import { initializeTheme } from '/src/app.js';
-        // Initialize theme when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeTheme();
-        });
-    </script>
+    // Load environment variables
+    window.VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    window.VITE_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+
+    // Initialize app
+    import { initializeTheme, initializeUI, setupEventListeners } from './src/app.js';
+    
+    // Wait for DOM to be ready and module to be loaded
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Wait for module to be fully loaded
+        const { initializeTheme, initializeUI, setupEventListeners } = await import('./src/app.js');
+        
+        // Initialize theme first
+        await initializeTheme();
+        
+        // Then initialize UI and event listeners
+        await initializeUI();
+        await setupEventListeners();
+    });
+</script>
+
     <!-- Custom styles -->
     <style>
         /* Custom theme colors */
@@ -429,13 +438,15 @@
                     </button>
             </main>
         </div>
-    </body>
-</html>
-                    <option value="all">All Time</option>
-                </select>
-            </div>
-            <div id="choreHistory" class="chore-history"></div>
+        <div class="filter-group">
+            <select id="timeFilter" class="form-select">
+                <option value="all">All Time</option>
+            </select>
         </div>
+        <div id="choreHistory" class="chore-history"></div>
+    </div>
+</body>
+</html>
 
         <!-- Achievements tab -->
         <div id="achievements-tab" class="tab-content">
@@ -450,16 +461,7 @@
         <!-- Notifications -->
         <div id="notifications"></div>
     </div>
-
-    <!-- Add the Supabase client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-        
         // Points system
         const POINTS_SYSTEM = {
             frequency: {
@@ -482,10 +484,8 @@
             }
         };
     </script>
-    <!-- Load app.js as a module -->
-    <script type="module">
-        import './src/app.js';
-    </script>
+    <!-- Add the Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Achievement thresholds
         const ACHIEVEMENTS = {
@@ -493,20 +493,6 @@
             'clean_streak': { streak: 7, description: 'Complete chores every day for a week' },
             'helper_hero': { points: 100, description: 'Reach 100 points' }
         };
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeTheme();
-            initializeSupabase();
-            setupEventListeners();
-            startAutoRefresh();
-            setupNotifications();
-            loadCategories();
-            loadAssignees();
-            initializeCharts();
-        });
-
-        // Add all the new features here...
     </script>
 </body>
 </html>
