@@ -56,17 +56,26 @@ export async function testSupabaseConnection() {
         console.log('URL:', ENV.SUPABASE_URL);
         console.log('Key prefix:', ENV.SUPABASE_ANON_KEY.substring(0, 20) + '...');
         
-        const { data, error } = await supabase
+        // First test basic auth
+        const { data: authData, error: authError } = await supabase.auth.getSession();
+        if (authError) {
+            console.error('Auth test failed:', authError);
+            throw authError;
+        }
+        console.log('Auth test successful');
+        
+        // Then test basic database connection
+        const { data: dbData, error: dbError } = await supabase
             .from('chores')
             .select('count(*)', { count: 'exact', head: true });
             
-        if (error) {
-            console.error('Supabase connection test failed:', error);
-            throw error;
+        if (dbError) {
+            console.error('Database test failed:', dbError);
+            throw dbError;
         }
         
         console.log('Supabase connection test successful!');
-        return { success: true, data };
+        return { success: true, data: dbData };
     } catch (error) {
         console.error('Connection test error:', error);
         
