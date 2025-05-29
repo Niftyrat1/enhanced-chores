@@ -1,8 +1,10 @@
+import { supabase } from './config/supabase.js';
+
 // Environment Configuration
 const ENV = {
-    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
+    SUPABASE_URL: window.VITE_SUPABASE_URL,
+    SUPABASE_ANON_KEY: window.VITE_SUPABASE_ANON_KEY,
+    WEATHER_API_KEY: window.VITE_WEATHER_API_KEY
 };
 
 // Check if required environment variables are set
@@ -87,6 +89,22 @@ export function calculateChorePoints(chore) {
     const timeMultiplier = POINTS_SYSTEM.timeOfDay[chore.time_of_day] || 1;
     const seasonalMultiplier = POINTS_SYSTEM.seasonalSchedule[chore.seasonal_schedule] || 1;
     return Math.round(basePoints * frequencyMultiplier * difficultyMultiplier * priorityMultiplier * timeMultiplier * seasonalMultiplier);
+}
+
+// Theme Management
+export function initializeTheme() {
+    // Get saved theme from localStorage or default to system preference
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    
+    // Set theme
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    
+    // Add theme change listener
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        const newTheme = e.matches ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    });
 }
 
 export async function populateAssignees() {
@@ -267,11 +285,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
     updateTheme();
 });
 
-export function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.body.classList.toggle('dark-theme', savedTheme === 'dark');
-    updateTheme();
-}
+
 
 // Modal functions
 export function openModal(modalId) {
@@ -283,14 +297,6 @@ export function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
 }
-
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 // Core Functions
 export async function testDatabaseConnection() {

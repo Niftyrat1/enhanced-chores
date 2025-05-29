@@ -7,21 +7,11 @@ const ENV = {
     SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
 };
 
-// Validate environment variables
+// Check if required environment variables are set
 if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase configuration!');
-    console.error('Please check your .env file and ensure:');
-    console.error('- VITE_SUPABASE_URL is set');
-    console.error('- VITE_SUPABASE_ANON_KEY is set');
-    throw new Error('Supabase configuration is incomplete');
-}
-
-// Validate URL format
-try {
-    new URL(ENV.SUPABASE_URL);
-} catch (error) {
-    console.error('Invalid SUPABASE_URL format:', ENV.SUPABASE_URL);
-    throw new Error('SUPABASE_URL must be a valid URL');
+    console.warn('Using default Supabase configuration');
+    ENV.SUPABASE_URL = 'http://localhost:54321';
+    ENV.SUPABASE_ANON_KEY = 'anon.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.X-CqUQXWQs1jZJ0K6Ldwz07Q287p0Ox30XHj9XzNpsM';
 }
 
 // Initialize Supabase client with proper configuration
@@ -29,8 +19,8 @@ export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false, // Set to false for better CORS handling
-        flowType: 'pkce' // Use PKCE flow for better security
+        detectSessionInUrl: false,
+        flowType: 'pkce'
     },
     global: {
         headers: {

@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Household Chore Tracker</title>
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Load environment variables -->
+    <script>
+        // Load environment variables
+        window.VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        window.VITE_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+    </script>
     <!-- Vite entry point -->
+    <script type="module" src="/src/main.js"></script>
     <script type="module">
         import { initializeTheme } from '/src/app.js';
         // Initialize theme when DOM is loaded
@@ -16,7 +25,6 @@
             initializeTheme();
         });
     </script>
-    <script type="module" src="/src/main.js"></script>
     <!-- Custom styles -->
     <style>
         /* Custom theme colors */
