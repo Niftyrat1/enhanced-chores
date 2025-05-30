@@ -254,6 +254,29 @@ export async function addChore(form) {
 }
 
 // Chore Management
+export function createChoreHTML(chore) {
+    return `
+        <div class="chore-item bg-gray-800 rounded-lg p-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-semibold">${chore.title}</h3>
+                    <p class="text-sm text-gray-400">Category: ${chore.category_name || 'Unknown'}</p>
+                    <p class="text-sm text-gray-400">Assigned to: ${chore.assignee_name || 'Unknown'}</p>
+                    <p class="text-sm text-gray-400">Due: ${chore.due_date ? new Date(chore.due_date).toLocaleDateString() : 'No due date'}</p>
+                    <div class="flex gap-2 mt-2">
+                        <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-500 text-xs">${chore.priority}</span>
+                        <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs">Difficulty: ${chore.difficulty}</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="markChoreComplete('${chore.id}')" class="px-3 py-1 rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">Complete</button>
+                    <button onclick="skipChore('${chore.id}')" class="px-3 py-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30">Skip</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 export async function updateChoreList() {
     try {
         const { data: chores, error } = await supabase
@@ -264,7 +287,7 @@ export async function updateChoreList() {
 
         if (error) throw error;
 
-        const choreList = document.getElementById('choreList');
+        const choreList = document.querySelector('.chores-list');
         if (!choreList) return;
 
         choreList.innerHTML = chores.map(chore => createChoreHTML(chore)).join('');
