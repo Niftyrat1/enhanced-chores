@@ -45,6 +45,27 @@
                 --danger: #f44336;
             }
 
+            /* Chore details styles */
+            .chore-details {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+                margin: 1rem 0;
+            }
+            .chore-details p {
+                margin: 0;
+                padding: 0.5rem;
+                background: var(--background-secondary);
+                border-radius: 0.5rem;
+            }
+            .chore-details p::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                margin-bottom: 0.25rem;
+            }
+
             /* Dark theme overrides */
             .dark {
                 --primary: #667eea;
@@ -326,47 +347,41 @@
                             </div>
                             <div class="mb-4">
                                 <label for="choreCategory" class="block text-sm font-medium mb-1">Category</label>
-                                <select id="choreCategory" name="choreCategory" required 
+                                <select id="choreCategory" name="category_id" required 
                                         class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="">Select Category</option>
-                                    <option value="kitchen">Kitchen</option>
-                                    <option value="bathroom">Bathroom</option>
-                                    <option value="bedroom">Bedroom</option>
-                                    <option value="outdoor">Outdoor</option>
-                                    <option value="pet-care">Pet Care</option>
+                                    <!-- Categories will be populated by JavaScript -->
                                 </select>
                             </div>
                             <div class="mb-4">
                                 <label for="choreAssignee" class="block text-sm font-medium mb-1">Assignee</label>
-                                <select id="choreAssignee" name="choreAssignee" required 
+                                <select id="choreAssignee" name="assignee_id" required 
                                         class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="">Select Assignee</option>
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label for="choreFrequency" class="block text-sm font-medium mb-1">Frequency</label>
-                                    <select id="choreFrequency" name="choreFrequency" required 
-                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                                        <option value="daily">Daily</option>
-                                        <option value="weekly">Weekly</option>
-                                        <option value="monthly">Monthly</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="choreDifficulty" class="block text-sm font-medium mb-1">Difficulty</label>
-                                    <select id="choreDifficulty" name="choreDifficulty" required 
-                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                                        <option value="1">Easy</option>
-                                        <option value="2">Medium</option>
-                                        <option value="3">Hard</option>
-                                    </select>
-                                </div>
+                            <div class="mb-4">
+                                <label for="choreFrequency" class="block text-sm font-medium mb-1">Frequency</label>
+                                <select id="choreFrequency" name="frequency" required 
+                                        class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="choreDifficulty" class="block text-sm font-medium mb-1">Difficulty</label>
+                                <select id="choreDifficulty" name="difficulty" required 
+                                        class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                    <option value="1">Easy</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Hard</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label for="chorePriority" class="block text-sm font-medium mb-1">Priority</label>
-                                    <select id="chorePriority" name="chorePriority" required 
+                                    <select id="chorePriority" name="priority" required 
                                             class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
@@ -375,7 +390,7 @@
                                 </div>
                                 <div>
                                     <label for="timeOfDay" class="block text-sm font-medium mb-1">Time of Day</label>
-                                    <select id="timeOfDay" name="timeOfDay" required 
+                                    <select id="timeOfDay" name="time_of_day" required 
                                             class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                         <option value="morning">Morning</option>
                                         <option value="afternoon">Afternoon</option>
@@ -386,9 +401,9 @@
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label for="seasonalSchedule" class="block text-sm font-medium mb-1">Seasonal Schedule</label>
-                                    <select id="seasonalSchedule" name="seasonalSchedule" required 
+                                    <select id="seasonalSchedule" name="seasonal_schedule" 
                                             class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
-                                        <option value="all_year">All Year</option>
+                                        <option value="none">None</option>
                                         <option value="spring">Spring</option>
                                         <option value="summer">Summer</option>
                                         <option value="fall">Fall</option>
@@ -397,18 +412,18 @@
                                 </div>
                                 <div>
                                     <label for="choreDueDate" class="block text-sm font-medium mb-1">Due Date</label>
-                                    <input type="date" id="choreDueDate" name="choreDueDate"
+                                    <input type="date" id="choreDueDate" name="due_date" 
                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                 </div>
                             </div>
                             <div class="mb-4">
                                 <label for="requiredTools" class="block text-sm font-medium mb-1">Required Tools</label>
-                                <input type="text" id="requiredTools" name="requiredTools"
+                                <input type="text" id="requiredTools" name="required_tools"
                                        class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                             </div>
                             <div class="mb-4">
                                 <label for="choreNotes" class="block text-sm font-medium mb-1">Notes</label>
-                                <textarea id="choreNotes" name="choreNotes" rows="3"
+                                <textarea id="choreNotes" name="notes" rows="3"
                                           class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary"></textarea>
                             </div>
                             <div class="flex justify-end space-x-2">
@@ -428,81 +443,6 @@
                     </div>
                 </section>
 
-                <!-- Add Chore Modal -->
-                <div id="addChoreModal" class="modal-overlay hidden">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 class="modal-title">➕ Add New Chore</h3>
-                            <button class="modal-close" onclick="closeModal('addChoreModal')">×</button>
-                        </div>
-                        <form id="addChoreForm" class="space-y-4">
-                            <div class="form-group">
-                                <label class="form-label">Name</label>
-                                <input type="text" id="choreName" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Category</label>
-                                <select id="choreCategory" class="form-select" required>
-                                    <option value="">Select Category</option>
-                                    <option value="kitchen">Kitchen</option>
-                                    <option value="bathroom">Bathroom</option>
-                                    <option value="bedroom">Bedroom</option>
-                                    <option value="outdoor">Outdoor</option>
-                                    <option value="bi-weekly">Bi-weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="once">Once</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Difficulty</label>
-                                <select id="choreDifficulty" class="form-select">
-                                    <option value="easy">Easy (1x)</option>
-                                    <option value="medium">Medium (1.5x)</option>
-                                    <option value="hard">Hard (2x)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Priority</label>
-                                <select id="chorePriority" class="form-select">
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="urgent">Urgent</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Time of Day</label>
-                                <select id="timeOfDay" class="form-select">
-                                    <option value="">Any Time</option>
-                                    <option value="morning">Morning (6-12 AM)</option>
-                                    <option value="afternoon">Afternoon (12-6 PM)</option>
-                                    <option value="evening">Evening (6-12 PM)</option>
-                                    <option value="night">Night (12-6 AM)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Due Date & Time</label>
-                                <input type="datetime-local" id="choreDueDate" class="form-input">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Required Tools</label>
-                                <input type="text" id="requiredTools" class="form-input" placeholder="e.g., vacuum, mop, etc.">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Notes</label>
-                                <textarea id="choreNotes" class="form-input" rows="3"></textarea>
-                            </div>
-                            <div class="flex justify-end space-x-4">
-                                <button type="button" class="btn btn-secondary" onclick="window.closeModal('addChoreModal')">
-                                    Cancel
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    Add Chore
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
                 <!-- Add Chore Button -->
                 <button id="addChoreButton" class="fixed bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full shadow-lg">
                     <i class="fas fa-plus mr-2"></i>

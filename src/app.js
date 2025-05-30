@@ -161,10 +161,12 @@ export function validateForm(form) {
 }
 
 // Add chore
-export async function addChore() {
+export async function addChore(supabase) {
     try {
         const form = document.getElementById('addChoreForm');
-        if (!form) return;
+        if (!form || !supabase) {
+            throw new Error('Form or Supabase client is not available');
+        }
 
         if (!validateForm(form)) {
             alert('Please fill in all required fields');
@@ -277,7 +279,7 @@ export function setupEventListeners() {
     if (addChoreForm) {
         addChoreForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            addChore();
+            addChore(supabase);
         });
     }
 
@@ -422,8 +424,11 @@ export async function populateAssignees() {
 // Function to update chore list
 export async function updateChoreList(supabase, categoryFilter = '', statusFilter = '', searchInput = '') {
     try {
-        // Build query
-        let query = supabase.from('chores').select('*');
+        // Build query with join to get category names
+        let query = supabase
+            .from('chores')
+            .select('*, categories(name)')
+            .eq('category_id', 'categories.id');
         
         // Apply filters
         if (categoryFilter) {
@@ -440,8 +445,8 @@ export async function updateChoreList(supabase, categoryFilter = '', statusFilte
         // Filter by search
         const filteredChores = data.filter(chore => 
             chore.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-            chore.category_id.toLowerCase().includes(searchInput.toLowerCase()) ||
-            chore.notes.toLowerCase().includes(searchInput.toLowerCase())
+            (chore.categories?.name || '').toLowerCase().includes(searchInput.toLowerCase()) ||
+            chore.notes?.toLowerCase().includes(searchInput.toLowerCase())
         );
         
         // Sort by due date
@@ -458,9 +463,13 @@ export async function updateChoreList(supabase, categoryFilter = '', statusFilte
         choreList.innerHTML = filteredChores.map(chore => `
             <div class="chore-item ${chore.status}">
                 <h3>${chore.title}</h3>
-                <p>Category: ${chore.category}</p>
-                <p>Due: ${chore.due_date ? moment(chore.due_date).format('MMM D, YYYY') : 'No due date'}</p>
-                <p>Points: ${chore.points}</p>
+                <div class="chore-details">
+                    <p data-label="Category">${chore.categories?.name || 'No category'}</p>
+                    <p data-label="Frequency">${chore.frequency}</p>
+                    <p data-label="Difficulty">${chore.difficulty}</p>
+                    <p data-label="Due Date">${chore.due_date ? moment(chore.due_date).format('MMM D, YYYY') : 'No due date'}</p>
+                    <p data-label="Points">${chore.points}</p>
+                </div>
                 <div class="chore-actions">
                     <button onclick="markChoreComplete('${chore.id}')">Complete</button>
                     <button onclick="skipChore('${chore.id}')">Skip</button>
