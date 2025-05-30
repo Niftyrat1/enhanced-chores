@@ -67,14 +67,14 @@ export async function initializeUI() {
         }
 
         // Initialize assignee select
-        const assigneeSelect = document.getElementById('assigned_to');
+        const assigneeSelect = document.getElementById('choreAssignee');
         if (assigneeSelect) {
             assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
             const assignees = [
-                { id: 'mom', name: 'Mom' },
-                { id: 'dad', name: 'Dad' },
-                { id: 'thomas', name: 'Thomas' },
-                { id: 'any', name: 'Any' }
+                { id: '4e5f8b9c-1a2b-3c4d-5e6f-7a8b9c0d1e2f', name: 'Mom' },
+                { id: '8a9b0c1d-2e3f-4b5c-6d7e-8a9b0c1d2e3f', name: 'Dad' },
+                { id: 'c1d2e3f4-5a6b-7c8d-9e0f-a1b2c3d4e5f6', name: 'Thomas' },
+                { id: 'f4e3d2c1-b0a9-8765-4321-f0e9d8c7b6a5', name: 'Any' }
             ];
             assignees.forEach(assignee => {
                 const option = document.createElement('option');
@@ -171,10 +171,37 @@ export async function addChore() {
             return;
         }
 
+        // Validate assignee exists
+        const assigneeId = form.choreAssignee.value;
+        if (assigneeId && assigneeId !== 'any') {
+            const { data: user, error: userError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', assigneeId)
+                .single();
+
+            if (userError || !user) {
+                alert('Selected assignee does not exist in the database');
+                return;
+            }
+        }
+
+        // Get category ID from category name
+        const categorySelect = document.getElementById('choreCategory');
+        const { data: category, error: categoryError } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', categorySelect.value)
+            .single();
+
+        if (categoryError || !category) {
+            throw new Error('Selected category does not exist in the database');
+        }
+
         const choreData = {
             title: form.choreName.value,
-            category: form.choreCategory.value,
-            assigned_to: form.choreAssignee.value,
+            category_id: category.id,
+            assignee_id: form.choreAssignee.value,
             frequency: form.choreFrequency.value,
             difficulty: parseInt(form.choreDifficulty.value),
             priority: form.chorePriority.value,
@@ -207,7 +234,26 @@ export async function addChore() {
         alert('Chore added successfully!');
     } catch (error) {
         console.error('Error adding chore:', error);
-        alert('Error adding chore. Please try again.');
+        const errorMessage = error.message || 'An unknown error occurred';
+        console.error('Error adding chore:', error);
+        
+        // Create error message element
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded mb-4';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.textContent = errorMessage;
+        
+        // Add error message to the form
+        const formContainer = form.closest('.modal-content');
+        if (formContainer) {
+            formContainer.insertBefore(errorDiv, form);
+            
+            // Remove error message after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
     }
 }
 
@@ -381,7 +427,7 @@ export async function updateChoreList(supabase, categoryFilter = '', statusFilte
         
         // Apply filters
         if (categoryFilter) {
-            query = query.eq('category', categoryFilter);
+            query = query.eq('category_id', categoryFilter);
         }
         if (statusFilter) {
             query = query.eq('status', statusFilter);
@@ -394,7 +440,7 @@ export async function updateChoreList(supabase, categoryFilter = '', statusFilte
         // Filter by search
         const filteredChores = data.filter(chore => 
             chore.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-            chore.category.toLowerCase().includes(searchInput.toLowerCase()) ||
+            chore.category_id.toLowerCase().includes(searchInput.toLowerCase()) ||
             chore.notes.toLowerCase().includes(searchInput.toLowerCase())
         );
         
@@ -439,6 +485,29 @@ export async function markChoreComplete(choreId) {
         updatePoints(supabase);
     } catch (error) {
         console.error('Error marking chore complete:', error);
+    }
+}
+
+export async function postponeChore(choreId) {
+    try {
+        // Get current date and add 1 day
+        const newDueDate = new Date();
+        newDueDate.setDate(newDueDate.getDate() + 1);
+        
+        const { error } = await supabase
+            .from('chores')
+            .update({ 
+                status: 'pending',
+                due_date: newDueDate.toISOString().split('T')[0]
+            })
+            .eq('id', choreId);
+
+        if (error) throw error;
+
+        // Update UI
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error postponing chore:', error);
     }
 }
 
@@ -535,10 +604,6 @@ document.getElementById('themeToggle').addEventListener('click', () => {
     updateTheme();
 });
 
-
-
-
-
 // Helper functions
 export async function setupRealtimeSubscriptions() {
     supabase
@@ -557,16 +622,20 @@ export async function setupRealtimeSubscriptions() {
 // Category Management
 export async function loadCategories() {
     try {
-        const { data, error } = await supabase.from('categories').select('*');
-        if (error) throw error;
+        const { data, error } = await supabase
+            .from('categories')
+            .select('id, name, color, icon')
+            .order('name');
         
-        updateCategorySelect('addChoreCategory', data);
-        updateCategorySelect('editChoreCategory', data);
+        if (error) throw error;
+        return data;
     } catch (error) {
         console.error('Error loading categories:', error);
+        throw error;
     }
 }
 
+// Helper function to update category select elements
 export function updateCategorySelect(selectId, categories) {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -574,7 +643,7 @@ export function updateCategorySelect(selectId, categories) {
     select.innerHTML = '<option value="">Select Category</option>';
     categories.forEach(category => {
         const option = document.createElement('option');
-        option.value = category.name;
+        option.value = category.id;
         option.textContent = category.name;
         select.appendChild(option);
     });
@@ -687,45 +756,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Initialize the application
-window.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Initialize Supabase
-        await initializeSupabase();
-        
-        // Initialize UI
-        await initializeUI();
-        
-        // Setup event listeners
-        setupEventListeners();
-        
-        // Initialize theme
-        initializeTheme();
-    } catch (error) {
-        console.error('Error initializing application:', error);
-        // Show error to user
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
-        errorDiv.setAttribute('role', 'alert');
-        errorDiv.setAttribute('aria-live', 'assertive');
-        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
-        document.body.appendChild(errorDiv);
-    }
-});
-
 // Calculate points based on difficulty and priority
 export function calculatePoints(difficulty, priority) {
     const diffMultiplier = {
-        '1': 1,
-        '2': 2,
-        '3': 3
+        1: 1,  // Easy
+        2: 2,  // Medium
+        3: 3   // Hard
     };
-    
+
     const priorityMultiplier = {
         'low': 1,
         'medium': 1.5,
         'high': 2
     };
-    
-    return Math.round(diffMultiplier[difficulty] * priorityMultiplier[priority] * 10);
+
+    return Math.round((diffMultiplier[difficulty] || 1) * (priorityMultiplier[priority] || 1) * 10); // Base 10 points
 }
