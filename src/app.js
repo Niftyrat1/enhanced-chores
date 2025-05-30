@@ -1,6 +1,6 @@
 // Imports
 import { createClient } from '@supabase/supabase-js';
-import { supabase } from './config/supabase.js';
+import './config/supabase.js';
 
 // Environment Configuration
 const ENV = {
@@ -15,12 +15,14 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
 }
 
 // Initialize Supabase
+let supabaseClient = null;
+
 export function initializeSupabase() {
-    if (!supabase) {
+    if (!supabaseClient) {
         // Initialize Supabase client
-        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+        supabaseClient = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
     }
-    return supabase;
+    return supabaseClient;
 }
 
 // Initialize the application
