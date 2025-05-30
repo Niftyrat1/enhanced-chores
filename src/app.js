@@ -236,14 +236,18 @@ export async function updateChoreList() {
         const { data: chores, error } = await supabase
             .from('chores')
             .select(`
-                *,
-                categories (name),
-                users (name)
-            `)
-            .order('due_date')
-            .order('priority', { ascending: false })
-            .order('due_date')
-            .order('priority', { ascending: false });
+                id,
+                title,
+                category_id,
+                assignee_id,
+                due_date,
+                status,
+                priority,
+                difficulty,
+                created_at,
+                category_name: categories.name,
+                assignee_name: users.name
+            `);
 
         if (error) throw error;
 
