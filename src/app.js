@@ -197,9 +197,6 @@ export function setupEventListeners() {
     if (assigneeFilter) {
         assigneeFilter.addEventListener('change', updateChoreList);
     }
-    if (assigneeFilter) {
-        assigneeFilter.addEventListener('change', updateChoreList);
-    }
 
     // Search
     const searchInput = document.getElementById('searchInput');
