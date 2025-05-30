@@ -45,13 +45,53 @@ export function initializeTheme() {
 
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    document.documentElement.classList.toggle('light', savedTheme !== 'dark');
+    document.documentElement.classList.toggle('light', savedTheme !== 'light');
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         const newTheme = e.matches ? 'dark' : 'light';
         localStorage.setItem('theme', newTheme);
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
         document.documentElement.classList.toggle('light', newTheme !== 'light');
+    });
+}
+
+// Modal Functions
+export function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+export function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Event Listeners
+export function setupEventListeners() {
+    // Close modals when clicking outside
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+
+    // Close modals when pressing ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        }
     });
 }
 
@@ -203,10 +243,11 @@ export async function handleAddChoreClick(event) {
 }
 
 export function validateForm(form) {
-    const requiredFields = ['choreName', 'choreAssignee', 'choreFrequency', 'choreDifficulty', 'chorePriority'];
+    const requiredFields = ['choreName', 'assignee_id', 'frequency', 'difficulty', 'priority'];
     for (const field of requiredFields) {
         if (!form[field].value) {
-            alert(`Please fill in the ${field.replace('chore', '')} field`);
+            const fieldName = field === 'assignee_id' ? 'assignee' : field;
+            alert(`Please fill in the ${fieldName} field`);
             return false;
         }
     }
