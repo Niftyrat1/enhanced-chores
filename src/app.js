@@ -193,7 +193,7 @@ export async function handleAddChoreClick(event) {
 }
 
 export function validateForm(form) {
-    const requiredFields = ['choreName', 'choreAssignee', 'choreFrequency', 'choreDifficulty', 'chorePriority', 'category_id'];
+    const requiredFields = ['choreName', 'choreFrequency', 'choreDifficulty', 'chorePriority'];
     
     // Validate required fields
     for (const field of requiredFields) {
@@ -208,10 +208,21 @@ export function validateForm(form) {
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
     
     for (const field of uuidFields) {
-        if (!uuidRegex.test(form[field].value)) {
+        const value = form[field].value;
+        if (!value || !uuidRegex.test(value)) {
             alert(`Please select a valid ${field.replace('_', ' ')} from the dropdown`);
             return false;
         }
+    }
+
+    // Check if assignee and category are selected
+    if (!form.choreAssignee.value || form.choreAssignee.value === '') {
+        alert('Please select an assignee');
+        return false;
+    }
+    if (!form.choreCategory.value || form.choreCategory.value === '') {
+        alert('Please select a category');
+        return false;
     }
 
     return true;
@@ -274,7 +285,11 @@ export async function updateChoreList() {
     try {
         const { data: chores, error } = await supabase
             .from('chores')
-            .select('*')
+            .select(`
+                *,
+                categories (name as category_name),
+                users (name as assignee_name)
+            `)
             .order('due_date')
             .order('priority', { ascending: false });
 
