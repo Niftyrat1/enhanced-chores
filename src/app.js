@@ -81,17 +81,41 @@ export async function initializeUI() {
         const categoryFilter = document.getElementById('categoryFilter');
         const statusFilter = document.getElementById('statusFilter');
         const assigneeFilter = document.getElementById('assigneeFilter');
+        const timeFilter = document.getElementById('timeFilter');
 
-        // Initialize category filter
+        // Initialize and populate category filter
         if (categoryFilter) {
             categoryFilter.value = '';
             categoryFilter.setAttribute('aria-label', 'Filter chores by category');
+            // Add default option
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
         }
 
-        // Initialize status filter
+        // Initialize and populate status filter
         if (statusFilter) {
             statusFilter.value = '';
             statusFilter.setAttribute('aria-label', 'Filter chores by status');
+            // Add status options
+            statusFilter.innerHTML = `
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+            `;
+        }
+
+        // Initialize and populate time filter
+        if (timeFilter) {
+            timeFilter.value = 'all';
+            timeFilter.setAttribute('aria-label', 'Filter chores by time');
+            // Add time options
+            timeFilter.innerHTML = `
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+            `;
         }
 
         // Initialize search
