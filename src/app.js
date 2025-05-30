@@ -214,11 +214,11 @@ export function validateForm(form) {
 }
 
 export async function addChore(form) {
-    const categoryId = form.categoryId.value;
+    const categoryId = form.category_id.value;
     const { data: users, error: userError } = await supabase
         .from('users')
         .select('id')
-        .eq('id', form.choreAssignee.value)
+        .eq('id', form.assignee_id.value)
         .single();
 
     if (userError || !users) {
@@ -228,7 +228,7 @@ export async function addChore(form) {
     const choreData = {
         title: form.choreName.value,
         category_id: categoryId,
-        assignee_id: form.choreAssignee.value,
+        assignee_id: form.assignee_id.value,
         frequency: form.choreFrequency.value,
         difficulty: parseInt(form.choreDifficulty.value),
         priority: form.chorePriority.value,
