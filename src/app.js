@@ -16,14 +16,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Initialize theme
         initializeTheme();
         
-        // Initialize UI
+        // Populate data first
+        await Promise.all([
+            populateCategories(),
+            populateAssignees()
+        ]);
+
+        // Initialize UI (which will use populated data)
         await initializeUI();
         
         // Setup event listeners
         setupEventListeners();
-        
-        // Populate assignees
-        await populateAssignees();
         
         // Update chore list initially
         await updateChoreList();
@@ -478,19 +481,23 @@ export async function populateCategories() {
         // Populate category filter
         const categoryFilter = document.getElementById('categoryFilter');
         if (categoryFilter) {
-            categoryFilter.innerHTML = '<option value="">All Categories</option>' +
-                categories.map(category => `
-                    <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
-                `).join('');
+            categoryFilter.innerHTML = categories.length > 0 
+                ? '<option value="">All Categories</option>' +
+                  categories.map(category => `
+                      <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
+                  `).join('')
+                : '<option value="">No categories found</option>';
         }
 
         // Populate add chore category select
         const categorySelect = document.getElementById('choreCategory');
         if (categorySelect) {
-            categorySelect.innerHTML = '<option value="">Select Category</option>' +
-                categories.map(category => `
-                    <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
-                `).join('');
+            categorySelect.innerHTML = categories.length > 0 
+                ? '<option value="">Select Category</option>' +
+                  categories.map(category => `
+                      <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
+                  `).join('')
+                : '<option value="">No categories available</option>';
         }
 
         // Populate time filter
@@ -515,8 +522,11 @@ export async function populateCategories() {
                 <option value="overdue">Overdue</option>
             `;
         }
+
+        return categories; // Return categories for testing
     } catch (error) {
         console.error('Error populating categories:', error);
+        throw error; // Re-throw error to be caught by the initialization sequence
     }
 }
 
