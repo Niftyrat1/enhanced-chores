@@ -16,20 +16,17 @@ export const getSupabase = () => supabase;
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Initialize Supabase
-        const supabase = initializeSupabase();
-        
         // Initialize theme
         initializeTheme();
         
         // Initialize UI
-        await initializeUI(supabase);
+        await initializeUI();
         
         // Setup event listeners
-        setupEventListeners(supabase);
+        setupEventListeners();
         
         // Populate assignees
-        await populateAssignees(supabase);
+        await populateAssignees();
     } catch (error) {
         console.error('Error initializing application:', error);
         const errorDiv = document.createElement('div');
@@ -59,7 +56,6 @@ export function initializeTheme() {
 
 // UI Initialization
 export async function initializeUI() {
-    const supabase = initializeSupabase();
     try {
         // Initialize points display
         const pointsDisplay = document.getElementById('pointsDisplay');
@@ -292,7 +288,6 @@ export async function deleteChore(choreId) {
 
 // User Management
 export async function populateAssignees() {
-    const supabase = initializeSupabase();
     try {
         const { data: users, error: userError } = await supabase
             .from('users')
