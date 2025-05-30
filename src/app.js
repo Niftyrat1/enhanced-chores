@@ -125,6 +125,14 @@ export async function initializeUI() {
 
 // Event Listeners
 export function setupEventListeners() {
+    // Add chore button
+    const addChoreButton = document.getElementById('addChoreButton');
+    if (addChoreButton) {
+        addChoreButton.addEventListener('click', () => {
+            openModal('addChoreModal');
+        });
+    }
+
     // Add chore form submission
     const addChoreForm = document.getElementById('addChoreForm');
     if (addChoreForm) {
@@ -256,18 +264,33 @@ export async function skipChore(choreId) {
     }
 }
 
-export async function postponeChore(choreId, newDate) {
-    const supabase = initializeSupabase();
+export async function postponeChore(choreId) {
     try {
+        // Get the new date from the modal
+        const postponeUntil = document.getElementById('postponeUntil');
+        if (!postponeUntil || !postponeUntil.value) {
+            alert('Please select a date to postpone the chore');
+            return;
+        }
+
+        // Update the chore in the database
         const { error } = await supabase
             .from('chores')
-            .update({ due_date: newDate })
+            .update({ 
+                due_date: postponeUntil.value,
+                postponed: true,
+                postpone_reason: document.getElementById('skipReason').value
+            })
             .eq('id', choreId);
 
         if (error) throw error;
-        updateChoreList(supabase);
+        
+        // Close the modal and update the chore list
+        closeModal('skipChoreModal');
+        updateChoreList();
     } catch (error) {
         console.error('Error postponing chore:', error);
+        alert('Failed to postpone chore. Please try again.');
     }
 }
 
