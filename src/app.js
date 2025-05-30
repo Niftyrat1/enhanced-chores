@@ -308,7 +308,23 @@ export async function populateAssignees() {
     }
 }
 
-// Points and Achievements
+/*
+ * Points and Achievements System
+ * ============================
+ * Handles point calculation and achievement tracking.
+ */
+
+/**
+ * Calculate Chore Points
+ * --------------------
+ * Calculates points for a chore based on difficulty and priority:
+ * - Difficulty: 1 (Easy), 2 (Medium), 3 (Hard)
+ * - Priority: low, medium, high
+ * 
+ * @param {number} difficulty - Chore difficulty level (1-3)
+ * @param {string} priority - Chore priority level ('low', 'medium', 'high')
+ * @returns {number} Calculated points for the chore
+ */
 export function calculatePoints(difficulty, priority) {
     const diffMultiplier = {
         1: 1,  // Easy
