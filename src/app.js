@@ -468,6 +468,29 @@ export async function populateCategories() {
                     <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
                 `).join('');
         }
+
+        // Populate time filter
+        const timeFilter = document.getElementById('timeFilter');
+        if (timeFilter) {
+            timeFilter.innerHTML = `
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+            `;
+        }
+
+        // Populate status filter
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+            statusFilter.innerHTML = `
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+            `;
+        }
     } catch (error) {
         console.error('Error populating categories:', error);
     }
@@ -481,6 +504,14 @@ export async function populateAssignees() {
         
         if (error) throw error;
 
+        // Populate assignee filter
+        const assigneeFilter = document.getElementById('assigneeFilter');
+        if (assigneeFilter) {
+            assigneeFilter.innerHTML = '<option value="">All Assignees</option>' +
+                users.map(user => `<option value="${user.id}">${user.name}</option>`).join('');
+        }
+
+        // Populate add chore assignee select
         const assigneeSelect = document.getElementById('choreAssignee');
         if (assigneeSelect) {
             assigneeSelect.innerHTML = '<option value="">Select Assignee</option>' +
