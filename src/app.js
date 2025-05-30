@@ -1,3 +1,4 @@
+// Imports
 import { supabase } from './config/supabase.js';
 
 // Environment Configuration
@@ -7,26 +8,26 @@ const ENV = {
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
-// Check if required environment variables are set
 if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured');
 }
 
-// Initialize Supabasement
-export function initializeTheme() {
-    // Wait for DOM to be available
-    if (!document || !document.documentElement) {
-        return;
+// Initialize Supabase
+export function initializeSupabase() {
+    if (!supabase) {
+        throw new Error('Supabase client not initialized');
     }
+    return supabase;
+}
 
-    // Get saved theme from localStorage or default to system preference
+// Theme initialization
+export function initializeTheme() {
+    if (!document || !document.documentElement) return;
+
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    
-    // Set theme
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     document.documentElement.classList.toggle('light', savedTheme !== 'dark');
-    
-    // Add theme change listener
+
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         const newTheme = e.matches ? 'dark' : 'light';
         localStorage.setItem('theme', newTheme);
@@ -35,8 +36,8 @@ export function initializeTheme() {
     });
 }
 
-// Initialize UI components
-export async function initializeUI() {
+// UI Initialization
+export async function initializeUI(supabase) {
     try {
         // Initialize points display
         const pointsDisplay = document.getElementById('pointsDisplay');
@@ -52,8 +53,6 @@ export async function initializeUI() {
         if (categoryFilter && statusFilter) {
             categoryFilter.value = '';
             statusFilter.value = '';
-            
-            // Add ARIA attributes
             categoryFilter.setAttribute('aria-label', 'Filter chores by category');
             statusFilter.setAttribute('aria-label', 'Filter chores by status');
         }
@@ -70,18 +69,347 @@ export async function initializeUI() {
         const assigneeSelect = document.getElementById('choreAssignee');
         if (assigneeSelect) {
             assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
-            const assignees = [
-                { id: '4e5f8b9c-1a2b-3c4d-5e6f-7a8b9c0d1e2f', name: 'Mom' },
-                { id: '8a9b0c1d-2e3f-4b5c-6d7e-8a9b0c1d2e3f', name: 'Dad' },
-                { id: 'c1d2e3f4-5a6b-7c8d-9e0f-a1b2c3d4e5f6', name: 'Thomas' },
-                { id: 'f4e3d2c1-b0a9-8765-4321-f0e9d8c7b6a5', name: 'Any' }
-            ];
-            assignees.forEach(assignee => {
-                const option = document.createElement('option');
-                option.value = assignee.id;
-                option.textContent = assignee.name;
-                assigneeSelect.appendChild(option);
+        }
+
+        // Initialize tabs
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        if (tabs.length > 0 && tabContents.length > 0) {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-tab');
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        tab.classList.add('active');
+                        targetContent.classList.add('active');
+                    }
+                });
+                tab.setAttribute('role', 'tab');
+                tab.setAttribute('aria-selected', 'false');
             });
+            tabContents.forEach(content => {
+                content.setAttribute('role', 'tabpanel');
+                content.setAttribute('hidden', 'true');
+            });
+
+            tabs[0].setAttribute('aria-selected', 'true');
+            tabContents[0].removeAttribute('hidden');
+            tabs[0].classList.add('active');
+            tabContents[0].classList.add('active');
+        }
+    } catch (error) {
+        console.error('Error initializing UI:', error);
+        throw error;
+    }
+}
+
+// Event Listeners
+export function setupEventListeners(supabase) {
+    // Add chore form submission
+    const addChoreForm = document.getElementById('addChoreForm');
+    if (addChoreForm) {
+        addChoreForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleAddChoreClick(supabase, e);
+        });
+    }
+
+    // Filter changes
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', () => updateChoreList(supabase));
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => updateChoreList(supabase));
+    }
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => updateChoreList(supabase));
+    }
+}
+
+// Form Handling
+export async function handleAddChoreClick(supabase, event) {
+    const form = event.target;
+    if (!validateForm(form)) return;
+
+    try {
+        await addChore(supabase, form);
+        form.reset();
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error adding chore:', error);
+        alert('Failed to add chore. Please try again.');
+    }
+}
+
+export function validateForm(form) {
+    const requiredFields = ['choreName', 'choreAssignee', 'choreFrequency', 'choreDifficulty', 'chorePriority'];
+    for (const field of requiredFields) {
+        if (!form[field].value) {
+            alert(`Please fill in the ${field.replace('chore', '')} field`);
+            return false;
+        }
+    }
+    return true;
+}
+
+export async function addChore(supabase, form) {
+    const categoryId = form.categoryId.value;
+    const { data: users, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', form.choreAssignee.value)
+        .single();
+
+    if (userError || !users) {
+        throw new Error('Selected assignee does not exist');
+    }
+
+    const choreData = {
+        title: form.choreName.value,
+        category_id: categoryId,
+        assignee_id: form.choreAssignee.value,
+        frequency: form.choreFrequency.value,
+        difficulty: parseInt(form.choreDifficulty.value),
+        priority: form.chorePriority.value,
+        time_of_day: form.timeOfDay.value,
+        seasonal_schedule: form.seasonalSchedule.value,
+        due_date: form.choreDueDate.value,
+        points: calculatePoints(form.choreDifficulty.value, form.chorePriority.value)
+    };
+
+    const { error } = await supabase.from('chores').insert(choreData);
+    if (error) throw error;
+}
+
+// Chore Management
+export async function updateChoreList(supabase) {
+    try {
+        const { data: chores, error } = await supabase
+            .from('chores')
+            .select('*')
+            .order('due_date')
+            .order('priority', { ascending: false });
+
+        if (error) throw error;
+
+        const choreList = document.getElementById('choreList');
+        if (!choreList) return;
+
+        choreList.innerHTML = chores.map(chore => createChoreHTML(chore)).join('');
+    } catch (error) {
+        console.error('Error updating chore list:', error);
+    }
+}
+
+export async function markChoreComplete(supabase, choreId) {
+    try {
+        const { error } = await supabase
+            .from('chores')
+            .update({ completed: true })
+            .eq('id', choreId);
+
+        if (error) throw error;
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error marking chore complete:', error);
+    }
+}
+
+export async function skipChore(supabase, choreId) {
+    try {
+        const { error } = await supabase
+            .from('chores')
+            .update({ skipped: true })
+            .eq('id', choreId);
+
+        if (error) throw error;
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error skipping chore:', error);
+    }
+}
+
+export async function postponeChore(supabase, choreId, newDate) {
+    try {
+        const { error } = await supabase
+            .from('chores')
+            .update({ due_date: newDate })
+            .eq('id', choreId);
+
+        if (error) throw error;
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error postponing chore:', error);
+    }
+}
+
+export async function deleteChore(supabase, choreId) {
+    try {
+        const { error } = await supabase
+            .from('chores')
+            .delete()
+            .eq('id', choreId);
+
+        if (error) throw error;
+        updateChoreList(supabase);
+    } catch (error) {
+        console.error('Error deleting chore:', error);
+    }
+}
+
+// User Management
+export async function populateAssignees(supabase) {
+    try {
+        const { data: users, error: userError } = await supabase
+            .from('users')
+            .select('id, name');
+        const { data: categories, error: categoryError } = await supabase
+            .from('categories')
+            .select('id, name');
+
+        if (userError || categoryError) throw error;
+
+        const assigneeSelect = document.getElementById('choreAssignee');
+        if (assigneeSelect) {
+            assigneeSelect.innerHTML = '<option value="">Select Assignee</option>' +
+                users.map(user => `<option value="${user.id}">${user.name}</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error populating assignees:', error);
+    }
+}
+
+// Points and Achievements
+export function calculatePoints(difficulty, priority) {
+    const diffMultiplier = {
+        1: 1,  // Easy
+        2: 2,  // Medium
+        3: 3   // Hard
+    };
+
+    const priorityMultiplier = {
+        'low': 1,
+        'medium': 1.5,
+        'high': 2
+    };
+
+    return Math.round((diffMultiplier[difficulty] || 1) * (priorityMultiplier[priority] || 1) * 10);
+}
+
+export function createPointsAchievement(period, points) {
+    return {
+        type: 'points',
+        period,
+        value: points,
+        description: `Earn ${points} points in ${period}`,
+        achieved: false
+    };
+}
+
+export function createStreakAchievement(period, streak) {
+    return {
+        type: 'streak',
+        period,
+        value: streak,
+        description: `Complete chores for ${streak} consecutive ${period}`,
+        achieved: false
+    };
+}
+
+export function createCategoryAchievement(categories) {
+    return {
+        type: 'category',
+        value: categories.length,
+        description: `Complete chores in ${categories.length} different categories`,
+        achieved: false
+    };
+}
+
+export function createChallengeAchievement(challenges) {
+    return {
+        type: 'challenge',
+        value: challenges.length,
+        description: `Complete ${challenges.length} challenges`,
+        achieved: false
+    };
+}
+
+export function createAchievementHTML(achievement) {
+    const className = achievement.achieved ? 'achievement-completed' : 'achievement-pending';
+    return `
+        <div class="achievement ${className}">
+            <h3>${achievement.description}</h3>
+            <p>Period: ${achievement.period}</p>
+            <p>Progress: ${achievement.achieved ? 'Completed' : 'Pending'}</p>
+        </div>
+    `;
+}
+
+// Initialize the application
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize Supabase
+        const supabase = initializeSupabase();
+        
+        // Initialize theme
+        initializeTheme();
+        
+        // Initialize UI
+        await initializeUI(supabase);
+        
+        // Setup event listeners
+        setupEventListeners(supabase);
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
+        document.body.appendChild(errorDiv);
+    }
+});
+
+// Initialize UI components
+export async function initializeUI(supabase) {
+    try {
+        // Initialize points display
+        const pointsDisplay = document.getElementById('pointsDisplay');
+        if (pointsDisplay) {
+            pointsDisplay.textContent = '0 points';
+            pointsDisplay.setAttribute('role', 'status');
+            pointsDisplay.setAttribute('aria-live', 'polite');
+        }
+
+        // Initialize filters
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        if (categoryFilter && statusFilter) {
+            categoryFilter.value = '';
+            statusFilter.value = '';
+            categoryFilter.setAttribute('aria-label', 'Filter chores by category');
+            statusFilter.setAttribute('aria-label', 'Filter chores by status');
+        }
+
+        // Initialize search
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.setAttribute('aria-label', 'Search chores');
+            searchInput.setAttribute('placeholder', 'Search chores...');
+        }
+
+        // Initialize assignee select
+        const assigneeSelect = document.getElementById('choreAssignee');
+        if (assigneeSelect) {
+            assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
         }
 
         // Initialize tabs
@@ -122,11 +450,14 @@ export async function initializeUI() {
             tabs[0].classList.add('active');
             tabContents[0].classList.add('active');
         }
+
+        // Populate assignees and categories
+        await populateAssignees(supabase);
     } catch (error) {
         console.error('Error initializing UI:', error);
         throw error;
     }
-}
+};
 
 // Add chore button click handler
 export function handleAddChoreClick() {
@@ -188,21 +519,16 @@ export async function addChore(supabase) {
             }
         }
 
-        // Get category ID from category name
+        // Get category ID from category select
         const categorySelect = document.getElementById('choreCategory');
-        const { data: category, error: categoryError } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('name', categorySelect.value)
-            .single();
-
-        if (categoryError || !category) {
-            throw new Error('Selected category does not exist in the database');
+        const categoryId = categorySelect.value;
+        if (!categoryId) {
+            throw new Error('Please select a category');
         }
 
         const choreData = {
             title: form.choreName.value,
-            category_id: category.id,
+            category_id: categoryId,
             assignee_id: form.choreAssignee.value,
             frequency: form.choreFrequency.value,
             difficulty: parseInt(form.choreDifficulty.value),
@@ -675,6 +1001,36 @@ export function updateWeatherUI(weatherData) {
     document.getElementById('weatherIcon').src = weatherData.current.condition.icon;
 }
 
+// Export all functions
+export {
+    initializeTheme,
+    initializeUI,
+    handleAddChoreClick,
+    validateForm,
+    addChore,
+    setupEventListeners,
+    updateChoreList,
+    markChoreComplete,
+    skipChore,
+    postponeChore,
+    deleteChore,
+    populateAssignees,
+    calculatePoints,
+    initializeSupabase,
+    createPointsAchievement,
+    createStreakAchievement,
+    createCategoryAchievement,
+    createChallengeAchievement,
+    createAchievementHTML,
+    updatePoints,
+    updateProgressBars,
+    setupRealtimeSubscriptions,
+    loadCategories,
+    updateCategorySelect,
+    loadWeatherData,
+    updateWeatherUI
+};
+
 // Achievement System
 export async function loadAchievements() {
     try {
@@ -688,96 +1044,4 @@ export async function loadAchievements() {
     } catch (error) {
         console.error('Error loading achievements:', error);
     }
-}
-
-export function createPointsAchievement(period, points) {
-    return {
-        type: 'points',
-        period,
-        value: points,
-        description: `Earn ${points} points in ${period}`,
-        achieved: false
-    };
-}
-
-export function createStreakAchievement(period, streak) {
-    return {
-        type: 'streak',
-        period,
-        value: streak,
-        description: `Complete chores for ${streak} consecutive ${period}`,
-        achieved: false
-    };
-}
-
-export function createCategoryAchievement(categories) {
-    return {
-        type: 'category',
-        value: categories.length,
-        description: `Complete chores in ${categories.length} different categories`,
-        achieved: false
-    };
-}
-
-export function createChallengeAchievement(challenges) {
-    return {
-        type: 'challenge',
-        value: challenges.length,
-        description: `Complete ${challenges.length} challenges`,
-        achieved: false
-    };
-}
-
-export function createAchievementHTML(achievement) {
-    const className = achievement.achieved ? 'achievement-completed' : 'achievement-pending';
-    return `
-        <div class="achievement ${className}">
-            <h3>${achievement.description}</h3>
-            <p>Period: ${achievement.period}</p>
-            <p>Progress: ${achievement.achieved ? 'Completed' : 'Pending'}</p>
-        </div>
-    `;
-}
-
-// Initialize the application
-window.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Initialize Supabase
-        await initializeSupabase();
-        
-        // Initialize UI
-        const supabase = await initializeUI();
-        
-        // Setup event listeners
-        setupEventListeners();
-        
-        // Initialize theme
-        initializeTheme();
-    } catch (error) {
-        console.error('Error initializing application:', error);
-        // Show error to user
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
-        errorDiv.setAttribute('role', 'alert');
-        errorDiv.setAttribute('aria-live', 'assertive');
-        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
-        document.body.appendChild(errorDiv);
-    }
-});
-
-// Calculate points based on difficulty and priority
-export function calculatePoints(difficulty, priority) {
-    const diffMultiplier = {
-        1: 1,  // Easy
-        2: 2,  // Medium
-        3: 3   // Hard
-    };
-
-    const priorityMultiplier = {
-        'low': 1,
-        'medium': 1.5,
-        'high': 2
-    };
-
-    return Math.round((diffMultiplier[difficulty] || 1) * (priorityMultiplier[priority] || 1) * 10); // Base 10 points
 }
