@@ -29,6 +29,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         await populateAssignees();
     } catch (error) {
         console.error('Error initializing application:', error);
+        // Show error to user
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
         errorDiv.setAttribute('role', 'alert');
@@ -123,13 +124,41 @@ export async function initializeUI() {
     }
 }
 
+// Modal Functions
+export function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.querySelector('.modal-overlay');
+    if (modal && overlay) {
+        modal.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+export function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.querySelector('.modal-overlay');
+    if (modal && overlay) {
+        modal.classList.add('hidden');
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
 // Event Listeners
 export function setupEventListeners() {
     // Add chore button
     const addChoreButton = document.getElementById('addChoreButton');
     if (addChoreButton) {
         addChoreButton.addEventListener('click', () => {
-            openModal('addChoreModal');
+            const modal = document.getElementById('addChoreModal');
+            if (modal) {
+                openModal('addChoreModal');
+            }
         });
     }
 
