@@ -24,9 +24,9 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       outDir: 'dist',
-      sourcemap: true,
-      sourcemapFileNames: '[file].map',
-      sourcemapBaseUrl: '/',
+      sourcemap: mode !== 'production',
+      sourcemapFileNames: mode !== 'production' ? '[file].map' : undefined,
+      sourcemapBaseUrl: mode !== 'production' ? '/' : undefined,
       rollupOptions: {
         external: ['chart.js', 'chartjs-plugin-datalabels', 'react', 'react-dom'],
         output: {

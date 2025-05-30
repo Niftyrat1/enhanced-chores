@@ -287,8 +287,8 @@ export async function updateChoreList() {
             .from('chores')
             .select(`
                 *,
-                categories (name as category_name),
-                users (name as assignee_name)
+                categories!inner (name as category_name),
+                users!inner (name as assignee_name)
             `)
             .order('due_date')
             .order('priority', { ascending: false });
