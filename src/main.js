@@ -1,5 +1,5 @@
 import { supabase } from './config/supabase.js';
-import { initializeSupabase, testDatabaseConnection, initializeUI, setupEventListeners } from './app.js';
+import { initializeSupabase, testDatabaseConnection, initializeUI, setupEventListeners, openModal, closeModal, handleAddChoreClick } from './app.js';
 
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -32,6 +32,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Setup event listeners
         await setupEventListeners();
         
+        // Initialize theme
+        initializeTheme();
+        
         console.log('Application initialized successfully');
     } catch (error) {
         console.error('Error initializing application:', error);
@@ -44,28 +47,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.body.appendChild(errorDiv);
     }
 });
-
-// Form validation
-function validateForm(form) {
-    try {
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
-
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                field.classList.add('invalid');
-                isValid = false;
-            } else {
-                field.classList.remove('invalid');
-            }
-        });
-
-        return isValid;
-    } catch (error) {
-        console.error('Error validating form:', error);
-        return false;
-    }
-}
 
 // Debounce function
 function debounce(func, wait) {

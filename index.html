@@ -6,9 +6,9 @@
     <title>Enhanced Household Chore Tracker</title>
     <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
     <!-- Chart.js for analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Vite entry point -->
     <script type="module">
@@ -34,208 +34,217 @@
     });
 </script>
 
-    <!-- Custom styles -->
-    <style>
-        /* Custom theme colors */
-        :root {
-            --primary: #667eea;
-            --success: #4CAF50;
-            --warning: #FF9800;
-            --danger: #f44336;
-        }
+        <!-- Custom styles -->
+        <style>
+            /* Custom theme colors */
+            :root {
+                --primary: #667eea;
+                --success: #4CAF50;
+                --warning: #FF9800;
+                --danger: #f44336;
+            }
 
-        /* Dark theme overrides */
-        .dark {
-            --primary: #667eea;
-            --success: #4CAF50;
-            --warning: #FF9800;
-            --danger: #f44336;
-        }
+            /* Dark theme overrides */
+            .dark {
+                --primary: #667eea;
+                --success: #4CAF50;
+                --warning: #FF9800;
+                --danger: #f44336;
+            }
 
-        /* Category colors */
-        .category-kitchen { color: #4CAF50; }
-        .category-bathroom { color: #2196F3; }
-        .category-bedroom { color: #9C27B0; }
-        .category-outdoor { color: #FF9800; }
-        .category-pet-care { color: #E91E63; }
+            /* Category colors */
+            .category-kitchen { color: #4CAF50; }
+            .category-bathroom { color: #2196F3; }
+            .category-bedroom { color: #9C27B0; }
+            .category-outdoor { color: #FF9800; }
+            .category-pet-care { color: #E91E63; }
 
-        /* Modal styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+            /* Modal styles */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
 
-        .modal-content {
-            background-color: #1f2937;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
+            .modal-overlay.visible {
+                display: flex;
+            }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
+            .modal-content {
+                background-color: #1f2937;
+                padding: 2rem;
+                border-radius: 0.5rem;
+                width: 90%;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
 
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-        }
+            .modal-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
 
-        .modal-close:hover {
-            color: #9ca3af;
-        }
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #e5e7eb;
+            }
 
-        /* Form styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
+            .modal-close:hover {
+                color: var(--primary);
+            }
 
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #e5e7eb;
-        }
+            /* Button styles */
+            .btn {
+                padding: 0.5rem 1rem;
+                border-radius: 0.375rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
 
-        .form-input,
-        .form-select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #374151;
-            border-radius: 0.375rem;
-            background-color: #1f2937;
-            color: #e5e7eb;
-        }
+            .btn-primary {
+                background-color: var(--primary);
+                color: white;
+            }
 
-        .form-input:focus,
-        .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
+            .btn-primary:hover {
+                background-color: var(--primary-dark);
+            }
 
-        /* Button styles */
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+            .btn-secondary {
+                background-color: #4b5563;
+                color: white;
+            }
 
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
+            .btn-secondary:hover {
+                background-color: #374151;
+            }
 
-        .btn-primary:hover {
-            background-color: #5267e0;
-        }
+            /* Form styles */
+            .invalid {
+                border-color: var(--danger);
+            }
 
-        .btn-secondary {
-            background-color: #374151;
-            color: #e5e7eb;
-        }
+            /* Form styles */
+            .form-group {
+                margin-bottom: 1rem;
+            }
 
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
+            .form-label {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #e5e7eb;
+            }
 
-        /* Card styles */
-        .card {
-            background-color: #1f2937;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
+            .form-input,
+            .form-select {
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid #374151;
+                border-radius: 0.375rem;
+                background-color: #1f2937;
+                color: #e5e7eb;
+            }
 
-        /* Points dashboard styles */
-        .points-dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+            .form-input:focus,
+            .form-select:focus {
+                outline: none;
+                border-color: var(--primary);
+            }
 
-        .points-card {
-            background-color: #1f2937;
-            border-radius: 0.5rem;
-            padding: 1rem;
-        }
+            /* Card styles */
+            .card {
+                background-color: #1f2937;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
 
-        .points-card h3 {
-            margin-bottom: 0.5rem;
-            color: #e5e7eb;
-        }
+            /* Points dashboard styles */
+            .points-dashboard {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
 
-        .points-card .points-value {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
+            .points-card {
+                background-color: #1f2937;
+                border-radius: 0.5rem;
+                padding: 1rem;
+            }
 
-        .points-card .progress-bar {
-            height: 0.5rem;
-            background-color: #374151;
-            border-radius: 0.25rem;
-            margin-top: 0.5rem;
-        }
+            .points-card h3 {
+                margin-bottom: 0.5rem;
+                color: #e5e7eb;
+            }
 
-        .points-card .progress-fill {
-            height: 100%;
-            background-color: var(--primary);
-            border-radius: 0.25rem;
-            transition: width 0.3s ease;
-        }
+            .points-card .points-value {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--primary);
+            }
 
-        /* Chore list styles */
-        .chore-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+            .points-card .progress-bar {
+                height: 0.5rem;
+                background-color: #374151;
+                border-radius: 0.25rem;
+                margin-top: 0.5rem;
+            }
 
-        .chore-item {
-            background-color: #1f2937;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+            .points-card .progress-fill {
+                height: 100%;
+                background-color: var(--primary);
+                border-radius: 0.25rem;
+                transition: width 0.3s ease;
+            }
 
-        .chore-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
+            /* Chore list styles */
+            .chore-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
 
-        /* Theme toggle styles */
-        .theme-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #e5e7eb;
-        }
+            .chore-item {
+                background-color: #1f2937;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .chore-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            /* Theme toggle styles */
+            .theme-toggle {
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #e5e7eb;
+            }
 
             .theme-toggle:hover {
                 color: var(--primary);
@@ -248,8 +257,9 @@
             <header class="mb-8">
                 <div class="flex justify-between items-center">
                     <h1 class="text-4xl font-bold text-primary">🏠 Enhanced Chore Tracker</h1>
-                    <button id="testDbButton" class="btn btn-secondary">Test Database Connection</button>
                     <div class="flex space-x-4">
+
+                        <button id="testDbButton" class="btn btn-secondary">Test Database Connection</button>
                         <button id="themeToggle" class="theme-toggle px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">
                             <i class="fas fa-moon"></i>
                         </button>
@@ -297,6 +307,117 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Add Chore Modal -->
+                <div id="addChoreModal" class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title">Add New Chore</h2>
+                            <button class="modal-close" onclick="closeModal('addChoreModal')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="addChoreForm">
+                            <div class="mb-4">
+                                <label for="choreName" class="block text-sm font-medium mb-1">Chore Name</label>
+                                <input type="text" id="choreName" name="choreName" required 
+                                       class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                            </div>
+                            <div class="mb-4">
+                                <label for="choreCategory" class="block text-sm font-medium mb-1">Category</label>
+                                <select id="choreCategory" name="choreCategory" required 
+                                        class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                    <option value="">Select Category</option>
+                                    <option value="kitchen">Kitchen</option>
+                                    <option value="bathroom">Bathroom</option>
+                                    <option value="bedroom">Bedroom</option>
+                                    <option value="outdoor">Outdoor</option>
+                                    <option value="pet-care">Pet Care</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="choreAssignee" class="block text-sm font-medium mb-1">Assignee</label>
+                                <select id="choreAssignee" name="choreAssignee" required 
+                                        class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                    <option value="">Select Assignee</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="choreFrequency" class="block text-sm font-medium mb-1">Frequency</label>
+                                    <select id="choreFrequency" name="choreFrequency" required 
+                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="choreDifficulty" class="block text-sm font-medium mb-1">Difficulty</label>
+                                    <select id="choreDifficulty" name="choreDifficulty" required 
+                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                        <option value="1">Easy</option>
+                                        <option value="2">Medium</option>
+                                        <option value="3">Hard</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="chorePriority" class="block text-sm font-medium mb-1">Priority</label>
+                                    <select id="chorePriority" name="chorePriority" required 
+                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="timeOfDay" class="block text-sm font-medium mb-1">Time of Day</label>
+                                    <select id="timeOfDay" name="timeOfDay" required 
+                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                        <option value="morning">Morning</option>
+                                        <option value="afternoon">Afternoon</option>
+                                        <option value="evening">Evening</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="seasonalSchedule" class="block text-sm font-medium mb-1">Seasonal Schedule</label>
+                                    <select id="seasonalSchedule" name="seasonalSchedule" required 
+                                            class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                        <option value="all_year">All Year</option>
+                                        <option value="spring">Spring</option>
+                                        <option value="summer">Summer</option>
+                                        <option value="fall">Fall</option>
+                                        <option value="winter">Winter</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="choreDueDate" class="block text-sm font-medium mb-1">Due Date</label>
+                                    <input type="date" id="choreDueDate" name="choreDueDate"
+                                           class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="requiredTools" class="block text-sm font-medium mb-1">Required Tools</label>
+                                <input type="text" id="requiredTools" name="requiredTools"
+                                       class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
+                            </div>
+                            <div class="mb-4">
+                                <label for="choreNotes" class="block text-sm font-medium mb-1">Notes</label>
+                                <textarea id="choreNotes" name="choreNotes" rows="3"
+                                          class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary"></textarea>
+                            </div>
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" onclick="closeModal('addChoreModal')" 
+                                        class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">Cancel</button>
+                                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white">Add Chore</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 <!-- Chores List -->
                 <section class="bg-gray-800 rounded-lg p-6">
@@ -385,7 +506,7 @@
                                 <textarea id="choreNotes" class="form-input" rows="3"></textarea>
                             </div>
                             <div class="flex justify-end space-x-4">
-                                <button type="button" class="btn btn-secondary" onclick="closeModal('addChoreModal')">
+                                <button type="button" class="btn btn-secondary" onclick="window.closeModal('addChoreModal')">
                                     Cancel
                                 </button>
                                 <button type="submit" class="btn btn-primary">
@@ -405,7 +526,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 class="modal-title">⏰ Skip/Postpone Chore</h3>
-                            <button class="modal-close" onclick="closeModal('skipChoreModal')">×</button>
+                            <button class="modal-close" onclick="window.closeModal('skipChoreModal')">×</button>
                         </div>
                         <div class="space-y-4">
                             <div class="form-group">
@@ -423,7 +544,7 @@
                                 <input type="datetime-local" id="postponeUntil" class="form-input">
                             </div>
                             <div class="flex justify-end space-x-4">
-                                <button type="button" class="btn btn-secondary" onclick="closeModal('skipChoreModal')">
+                                <button type="button" class="btn btn-secondary" onclick="window.closeModal('skipChoreModal')">
                                     Cancel
                                 </button>
                                 <button type="button" class="btn btn-primary" onclick="skipChore()">

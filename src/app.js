@@ -12,7 +12,7 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured');
 }
 
-// Theme Management
+// Initialize Supabasement
 export function initializeTheme() {
     // Wait for DOM to be available
     if (!document || !document.documentElement) {
@@ -66,6 +66,24 @@ export async function initializeUI() {
             searchInput.setAttribute('placeholder', 'Search chores...');
         }
 
+        // Initialize assignee select
+        const assigneeSelect = document.getElementById('choreAssignee');
+        if (assigneeSelect) {
+            assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
+            const assignees = [
+                { id: 'mom', name: 'Mom' },
+                { id: 'dad', name: 'Dad' },
+                { id: 'thomas', name: 'Thomas' },
+                { id: 'any', name: 'Any' }
+            ];
+            assignees.forEach(assignee => {
+                const option = document.createElement('option');
+                option.value = assignee.id;
+                option.textContent = assignee.name;
+                assigneeSelect.appendChild(option);
+            });
+        }
+
         // Initialize tabs
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -101,28 +119,8 @@ export async function initializeUI() {
             // Show first tab by default
             tabs[0].setAttribute('aria-selected', 'true');
             tabContents[0].removeAttribute('hidden');
-        }
-
-        // Initialize modals
-        const modals = document.querySelectorAll('.modal');
-        if (modals.length > 0) {
-            modals.forEach(modal => {
-                modal.setAttribute('role', 'dialog');
-                modal.setAttribute('aria-modal', 'true');
-                modal.setAttribute('hidden', 'true');
-            });
-        }
-
-        // Initialize forms
-        const forms = document.querySelectorAll('form');
-        if (forms.length > 0) {
-            forms.forEach(form => {
-                form.setAttribute('novalidate', '');
-                form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    validateForm(form);
-                });
-            });
+            tabs[0].classList.add('active');
+            tabContents[0].classList.add('active');
         }
     } catch (error) {
         console.error('Error initializing UI:', error);
@@ -130,33 +128,86 @@ export async function initializeUI() {
     }
 }
 
+// Add chore button click handler
+export function handleAddChoreClick() {
+    const modal = document.getElementById('addChoreModal');
+    if (modal) {
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
 // Form validation
 export function validateForm(form) {
-    const requiredFields = form.querySelectorAll('[required]');
-    let isValid = true;
+    try {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
 
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('invalid');
-            isValid = false;
-        } else {
-            field.classList.remove('invalid');
-        }
-    });
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('invalid');
+            }
+        });
 
-    if (!isValid) {
-        const error = new Error('Please fill in all required fields');
-        error.name = 'ValidationError';
-        throw error;
+        return isValid;
+    } catch (error) {
+        console.error('Error validating form:', error);
+        return false;
     }
+}
 
-    // Handle form submission
-    const submitHandler = form.getAttribute('data-submit-handler');
-    if (submitHandler) {
-        const handler = window[submitHandler];
-        if (typeof handler === 'function') {
-            handler();
+// Add chore
+export async function addChore() {
+    try {
+        const form = document.getElementById('addChoreForm');
+        if (!form) return;
+
+        if (!validateForm(form)) {
+            alert('Please fill in all required fields');
+            return;
         }
+
+        const choreData = {
+            title: form.choreName.value,
+            category: form.choreCategory.value,
+            assignee: form.choreAssignee.value,
+            frequency: form.choreFrequency.value,
+            difficulty: parseInt(form.choreDifficulty.value),
+            priority: form.chorePriority.value,
+            time_of_day: form.timeOfDay.value,
+            seasonal_schedule: form.seasonalSchedule.value,
+            due_date: form.choreDueDate.value,
+            points: calculatePoints(form.choreDifficulty.value, form.chorePriority.value)
+        };
+
+        const { data, error } = await supabase
+            .from('chores')
+            .insert([choreData]);
+
+        if (error) throw error;
+
+        // Close modal
+        const modal = document.getElementById('addChoreModal');
+        if (modal) {
+            modal.classList.remove('visible');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Reset form
+        form.reset();
+
+        // Update chore list
+        updateChoreList(supabase);
+
+        alert('Chore added successfully!');
+    } catch (error) {
+        console.error('Error adding chore:', error);
+        alert('Error adding chore. Please try again.');
     }
 }
 
@@ -166,7 +217,12 @@ export function setupEventListeners() {
     const addChoreButton = document.getElementById('addChoreButton');
     if (addChoreButton) {
         addChoreButton.addEventListener('click', () => {
-            openModal('addChoreModal');
+            const modal = document.getElementById('addChoreModal');
+            if (modal) {
+                modal.classList.add('visible');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         });
     }
 
@@ -213,8 +269,8 @@ export function debounce(func, wait) {
 export function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.removeAttribute('hidden');
-        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 }
@@ -222,8 +278,8 @@ export function openModal(modalId) {
 export function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.setAttribute('hidden', '');
-        modal.setAttribute('aria-hidden', 'true');
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
         document.body.style.overflow = '';
     }
 }
@@ -294,14 +350,19 @@ export async function testDatabaseConnection() {
 }
 
 export async function populateAssignees() {
-    const { data, error } = await supabase.from('users').select('id, name');
-    if (error) throw error;
-    
     const assigneeSelect = document.getElementById('choreAssignee');
     if (!assigneeSelect) return;
     
     assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
-    data.forEach(user => {
+    
+    const users = [
+        { id: 'mom', name: 'Mom' },
+        { id: 'dad', name: 'Dad' },
+        { id: 'thomas', name: 'Thomas' },
+        { id: 'any', name: 'Any' }
+    ];
+    
+    users.forEach(user => {
         const option = document.createElement('option');
         option.value = user.id;
         option.textContent = user.name;
@@ -597,5 +658,71 @@ export function createAchievementHTML(achievement) {
     `;
 }
 
-// Initialization
-document.addEventListener('DOMContentLoaded', initializeSupabase);
+// Initialize the application
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize Supabase
+        await initializeSupabase();
+        
+        // Initialize UI
+        await initializeUI();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Initialize theme
+        initializeTheme();
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        // Show error to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
+        document.body.appendChild(errorDiv);
+    }
+});
+
+// Initialize the application
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize Supabase
+        await initializeSupabase();
+        
+        // Initialize UI
+        await initializeUI();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Initialize theme
+        initializeTheme();
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        // Show error to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
+        document.body.appendChild(errorDiv);
+    }
+});
+
+// Calculate points based on difficulty and priority
+export function calculatePoints(difficulty, priority) {
+    const diffMultiplier = {
+        '1': 1,
+        '2': 2,
+        '3': 3
+    };
+    
+    const priorityMultiplier = {
+        'low': 1,
+        'medium': 1.5,
+        'high': 2
+    };
+    
+    return Math.round(diffMultiplier[difficulty] * priorityMultiplier[priority] * 10);
+}
