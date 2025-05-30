@@ -193,6 +193,7 @@ export function setupEventListeners() {
     if (statusFilter) {
         statusFilter.addEventListener('change', updateChoreList);
     }
+    // Only add event listener if assignee filter exists
     if (assigneeFilter) {
         assigneeFilter.addEventListener('change', updateChoreList);
     }
@@ -260,6 +261,7 @@ export function validateForm(form) {
 
 export async function updateChoreList() {
     try {
+        // Get filter values
         const categoryFilter = document.getElementById('categoryFilter');
         const statusFilter = document.getElementById('statusFilter');
         const assigneeFilter = document.getElementById('assigneeFilter');
@@ -349,6 +351,7 @@ export async function updateChoreList() {
         `).join('');
     } catch (error) {
         console.error('Error updating chore list:', error);
+        showNotification('Error updating chore list. Please refresh the page.', 'error');
     }
 }
 
