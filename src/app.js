@@ -245,8 +245,8 @@ export async function updateChoreList() {
                 priority,
                 difficulty,
                 created_at,
-                categories! (name),
-                users! (name)
+                categories (name),
+                users (name)
             `);
 
         if (error) throw error;
