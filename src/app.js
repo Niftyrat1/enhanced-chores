@@ -80,10 +80,17 @@ export async function initializeUI() {
         // Initialize filters
         const categoryFilter = document.getElementById('categoryFilter');
         const statusFilter = document.getElementById('statusFilter');
-        if (categoryFilter && statusFilter) {
+        const assigneeFilter = document.getElementById('assigneeFilter');
+
+        // Initialize category filter
+        if (categoryFilter) {
             categoryFilter.value = '';
-            statusFilter.value = '';
             categoryFilter.setAttribute('aria-label', 'Filter chores by category');
+        }
+
+        // Initialize status filter
+        if (statusFilter) {
+            statusFilter.value = '';
             statusFilter.setAttribute('aria-label', 'Filter chores by status');
         }
 
@@ -99,6 +106,7 @@ export async function initializeUI() {
         // Initialize assignee filter
         if (assigneeFilter) {
             assigneeFilter.value = '';
+            assigneeFilter.setAttribute('aria-label', 'Filter chores by assignee');
             assigneeFilter.addEventListener('change', updateChoreList);
         }
 
