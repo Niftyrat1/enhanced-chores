@@ -16,11 +16,21 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Initialize theme
         initializeTheme();
         
+        // Check Supabase client
+        console.log('Supabase client:', supabase);
+        
         // Populate data first
-        await Promise.all([
-            populateCategories(),
-            populateAssignees()
-        ]);
+        try {
+            const [categoriesResult, assigneesResult] = await Promise.all([
+                populateCategories(),
+                populateAssignees()
+            ]);
+            console.log('Categories populated:', categoriesResult);
+            console.log('Assignees populated:', assigneesResult);
+        } catch (error) {
+            console.error('Error populating data:', error);
+            throw error;
+        }
 
         // Initialize UI (which will use populated data)
         await initializeUI();
@@ -35,6 +45,35 @@ window.addEventListener('DOMContentLoaded', async () => {
         alert('Error initializing application. Please refresh the page.');
     }
 });
+
+// Add debug function to check if elements exist
+function debugFilters() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const timeFilter = document.getElementById('timeFilter');
+    const assigneeFilter = document.getElementById('assigneeFilter');
+
+    console.log('Category filter exists:', !!categoryFilter);
+    console.log('Status filter exists:', !!statusFilter);
+    console.log('Time filter exists:', !!timeFilter);
+    console.log('Assignee filter exists:', !!assigneeFilter);
+
+    if (categoryFilter) {
+        console.log('Category filter options:', categoryFilter.innerHTML);
+    }
+    if (statusFilter) {
+        console.log('Status filter options:', statusFilter.innerHTML);
+    }
+    if (timeFilter) {
+        console.log('Time filter options:', timeFilter.innerHTML);
+    }
+    if (assigneeFilter) {
+        console.log('Assignee filter options:', assigneeFilter.innerHTML);
+    }
+}
+
+// Call debug function after initialization
+window.addEventListener('load', debugFilters);
 
 // Notification Functions
 export function showNotification(message, type = 'info') {
@@ -471,38 +510,55 @@ export async function deleteChore(choreId) {
 // User Management
 export async function populateCategories() {
     try {
+        console.log('Attempting to populate categories...');
         const supabase = getSupabase();
+        console.log('Supabase client:', supabase);
+        
         const { data: categories, error } = await supabase
             .from('categories')
             .select('*');
         
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        console.log('Categories retrieved:', categories);
 
         // Populate category filter
         const categoryFilter = document.getElementById('categoryFilter');
         if (categoryFilter) {
+            console.log('Found category filter element');
             categoryFilter.innerHTML = categories.length > 0 
                 ? '<option value="">All Categories</option>' +
                   categories.map(category => `
                       <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
                   `).join('')
                 : '<option value="">No categories found</option>';
+            console.log('Category filter populated with:', categoryFilter.innerHTML);
+        } else {
+            console.error('Category filter element not found');
         }
 
         // Populate add chore category select
         const categorySelect = document.getElementById('choreCategory');
         if (categorySelect) {
+            console.log('Found category select element');
             categorySelect.innerHTML = categories.length > 0 
                 ? '<option value="">Select Category</option>' +
                   categories.map(category => `
                       <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
                   `).join('')
                 : '<option value="">No categories available</option>';
+            console.log('Category select populated with:', categorySelect.innerHTML);
+        } else {
+            console.error('Category select element not found');
         }
 
         // Populate time filter
         const timeFilter = document.getElementById('timeFilter');
         if (timeFilter) {
+            console.log('Found time filter element');
             timeFilter.innerHTML = `
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -510,17 +566,24 @@ export async function populateCategories() {
                 <option value="month">This Month</option>
                 <option value="year">This Year</option>
             `;
+            console.log('Time filter populated with:', timeFilter.innerHTML);
+        } else {
+            console.error('Time filter element not found');
         }
 
         // Populate status filter
         const statusFilter = document.getElementById('statusFilter');
         if (statusFilter) {
+            console.log('Found status filter element');
             statusFilter.innerHTML = `
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
                 <option value="overdue">Overdue</option>
             `;
+            console.log('Status filter populated with:', statusFilter.innerHTML);
+        } else {
+            console.error('Status filter element not found');
         }
 
         return categories; // Return categories for testing
