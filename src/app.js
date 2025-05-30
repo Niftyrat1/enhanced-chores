@@ -169,7 +169,8 @@ export function setupEventListeners() {
 }
 
 // Form Handling
-export async function handleAddChoreClick(supabase, event) {
+export async function handleAddChoreClick(event) {
+    const supabase = initializeSupabase();
     const form = event.target;
     if (!validateForm(form)) return;
 

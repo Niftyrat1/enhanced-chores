@@ -20,11 +20,8 @@
     // Initialize app
     import { initializeTheme, initializeUI, setupEventListeners, populateAssignees } from './src/app.js';
     
-    // Wait for DOM to be ready and module to be loaded
+    // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', async () => {
-        // Wait for module to be fully loaded
-        const { initializeTheme, initializeUI, setupEventListeners } = await import('./src/app.js');
-        
         // Initialize theme first
         await initializeTheme();
         
