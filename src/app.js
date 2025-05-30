@@ -16,10 +16,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Initialize theme
         initializeTheme();
         
+        // Initialize UI first to ensure elements are ready
+        await initializeUI();
+        
         // Check Supabase client
         console.log('Supabase client:', supabase);
         
-        // Populate data first
+        // Populate data after UI is initialized
         try {
             const [categoriesResult, assigneesResult] = await Promise.all([
                 populateCategories(),
@@ -32,9 +35,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             throw error;
         }
 
-        // Initialize UI (which will use populated data)
-        await initializeUI();
-        
         // Setup event listeners
         setupEventListeners();
         
