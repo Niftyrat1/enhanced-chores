@@ -18,7 +18,7 @@
     window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 
     // Initialize app
-    import { initializeTheme, initializeUI, setupEventListeners } from './src/app.js';
+    import { initializeTheme, initializeUI, setupEventListeners, populateAssignees } from './src/app.js';
     
     // Wait for DOM to be ready and module to be loaded
     document.addEventListener('DOMContentLoaded', async () => {
@@ -30,6 +30,7 @@
         
         // Then initialize UI and event listeners
         await initializeUI();
+        await populateAssignees();
         await setupEventListeners();
     });
 </script>

@@ -284,6 +284,9 @@ export function closeModal(modalId) {
     }
 }
 
+// Make closeModal globally available for HTML onclick handlers
+window.closeModal = closeModal;
+
 // Initialize Supabase
 export async function initializeSupabase() {
     try {
