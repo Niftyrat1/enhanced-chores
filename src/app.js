@@ -264,8 +264,8 @@ export function createChoreHTML(chore) {
             <div class="flex justify-between items-start">
                 <div>
                     <h3 class="text-lg font-semibold">${chore.title}</h3>
-                    <p class="text-sm text-gray-400">Category: ${chore.category_name || 'Unknown'}</p>
-                    <p class="text-sm text-gray-400">Assigned to: ${chore.assignee_name || 'Unknown'}</p>
+                    <p class="text-sm text-gray-400">Category: ${chore.categories?.name || 'Unknown'}</p>
+                    <p class="text-sm text-gray-400">Assigned to: ${chore.users?.name || 'Unknown'}</p>
                     <p class="text-sm text-gray-400">Due: ${chore.due_date ? new Date(chore.due_date).toLocaleDateString() : 'No due date'}</p>
                     <div class="flex gap-2 mt-2">
                         <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-500 text-xs">${chore.priority}</span>
@@ -287,9 +287,13 @@ export async function updateChoreList() {
             .from('chores')
             .select(`
                 *,
-                categories!inner (name as category_name),
-                users!inner (name as assignee_name)
+                categories!category_id (name),
+                users!assignee_id (name)
             `)
+            .order('due_date')
+            .order('priority', { ascending: false })
+            .join('categories', 'chores.category_id', 'categories.id')
+            .join('users', 'chores.assignee_id', 'users.id')
             .order('due_date')
             .order('priority', { ascending: false });
 
