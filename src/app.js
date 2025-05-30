@@ -251,10 +251,23 @@ export async function updateChoreList() {
         if (!choreList) return;
 
         if (!chores || chores.length === 0) {
+            console.log('No chores found in database');
             choreList.innerHTML = '<p class="text-gray-400">No chores found</p>';
             return;
         }
-        
+
+        // Debug individual chores
+        chores.forEach((chore, index) => {
+            console.log(`Chore ${index + 1}:`, {
+                id: chore.id,
+                title: chore.title,
+                category_id: chore.category_id,
+                assignee_id: chore.assignee_id,
+                category: chore.categories,
+                user: chore.users
+            });
+        });
+
         choreList.innerHTML = chores.map(chore => `
             <div class="flex justify-between items-center mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                 <div class="flex flex-col">
@@ -270,8 +283,8 @@ export async function updateChoreList() {
                     </div>
                     <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         <div class="flex items-center gap-2">
-                            <span><i class="fas fa-folder text-blue-500"></i> ${chore.categories?.[0]?.name || 'No Category'}</span>
-                            <span><i class="fas fa-user text-purple-500"></i> ${chore.users?.[0]?.name || 'Unassigned'}</span>
+                            <span><i class="fas fa-folder text-blue-500"></i> ${chore.category_name || 'No Category'}</span>
+                            <span><i class="fas fa-user text-purple-500"></i> ${chore.assignee_name || 'Unassigned'}</span>
                             <span><i class="fas fa-calendar text-yellow-500"></i> ${chore.due_date ? new Date(chore.due_date).toLocaleDateString() : 'No due date'}</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
