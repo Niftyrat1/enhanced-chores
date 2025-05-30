@@ -746,7 +746,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         await initializeSupabase();
         
         // Initialize UI
-        await initializeUI();
+        const supabase = await initializeUI();
         
         // Setup event listeners
         setupEventListeners();
