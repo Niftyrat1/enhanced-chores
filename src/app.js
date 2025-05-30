@@ -306,15 +306,29 @@ export async function updateChoreList() {
         }
         
         choreList.innerHTML = chores.map(chore => {
-            console.log('Chore data:', {
-                id: chore.id,
-                title: chore.title,
-                category: chore.category_id,
-                assignee: chore.assignee_id,
-                category_name: chore.category_name,
-                assignee_name: chore.assignee_name
+            // Map the joined data correctly
+            // Map the joined data correctly
+            const category_name = chore.categories?.[0]?.name || 'Unknown';
+            const assignee_name = chore.users?.[0]?.name || 'Unknown';
+            
+            // Create a modified chore object with the correct names
+            const choreWithNames = {
+                ...chore,
+                category_name,
+                assignee_name,
+                category_id: chore.category_id,
+                assignee_id: chore.assignee_id
+            };
+
+            console.log('Processed chore data:', {
+                id: choreWithNames.id,
+                title: choreWithNames.title,
+                category: choreWithNames.category_id,
+                assignee: choreWithNames.assignee_id,
+                category_name: choreWithNames.category_name,
+                assignee_name: choreWithNames.assignee_name
             });
-            return createChoreHTML(chore);
+            return createChoreHTML(choreWithNames);
         }).join('');
     } catch (error) {
         console.error('Error updating chore list:', error);
