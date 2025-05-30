@@ -158,14 +158,7 @@ export function setupEventListeners() {
         });
     }
 
-    // Add chore form submission
-    const addChoreForm = document.getElementById('addChoreForm');
-    if (addChoreForm) {
-        addChoreForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await handleAddChoreClick(e);
-        });
-    }
+
 
     // Filter changes
     const categoryFilter = document.getElementById('categoryFilter');
