@@ -84,12 +84,6 @@ export async function initializeUI() {
             searchInput.setAttribute('placeholder', 'Search chores...');
         }
 
-        // Initialize assignee select
-        const assigneeSelect = document.getElementById('choreAssignee');
-        if (assigneeSelect) {
-            assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
-        }
-
         // Initialize tabs
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -118,6 +112,11 @@ export async function initializeUI() {
             tabs[0].classList.add('active');
             tabContents[0].classList.add('active');
         }
+
+        // Populate categories and assignees
+        await populateCategories();
+        await populateAssignees();
+
     } catch (error) {
         console.error('Error initializing UI:', error);
         throw error;
@@ -339,16 +338,43 @@ export async function deleteChore(choreId) {
 }
 
 // User Management
+export async function populateCategories() {
+    try {
+        const { data: categories, error } = await supabase
+            .from('categories')
+            .select('*');
+        
+        if (error) throw error;
+
+        // Populate category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+                categories.map(category => `
+                    <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
+                `).join('');
+        }
+
+        // Populate add chore category select
+        const categorySelect = document.getElementById('choreCategory');
+        if (categorySelect) {
+            categorySelect.innerHTML = '<option value="">Select Category</option>' +
+                categories.map(category => `
+                    <option value="${category.id}">${category.name} <i class="fas ${category.icon_class} text-${category.color_class}"></i></option>
+                `).join('');
+        }
+    } catch (error) {
+        console.error('Error populating categories:', error);
+    }
+}
+
 export async function populateAssignees() {
     try {
-        const { data: users, error: userError } = await supabase
+        const { data: users, error } = await supabase
             .from('users')
             .select('id, name');
-        const { data: categories, error: categoryError } = await supabase
-            .from('categories')
-            .select('id, name');
-
-        if (userError || categoryError) throw error;
+        
+        if (error) throw error;
 
         const assigneeSelect = document.getElementById('choreAssignee');
         if (assigneeSelect) {
