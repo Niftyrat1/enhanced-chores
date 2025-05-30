@@ -1031,17 +1031,3 @@ export {
     updateWeatherUI
 };
 
-// Achievement System
-export async function loadAchievements() {
-    try {
-        const { data, error } = await supabase.from('achievements').select('*');
-        if (error) throw error;
-        
-        const achievementList = document.getElementById('achievementList');
-        if (!achievementList) return;
-        
-        achievementList.innerHTML = data.map(achievement => createAchievementHTML(achievement)).join('');
-    } catch (error) {
-        console.error('Error loading achievements:', error);
-    }
-}
