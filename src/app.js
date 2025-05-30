@@ -24,15 +24,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         
         // Populate assignees
         await populateAssignees();
+        
+        // Update chore list initially
+        await updateChoreList();
     } catch (error) {
         console.error('Error initializing application:', error);
-        // Show error to user
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
-        errorDiv.setAttribute('role', 'alert');
-        errorDiv.setAttribute('aria-live', 'assertive');
-        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
-        document.body.appendChild(errorDiv);
+        showNotification('Error initializing application. Please refresh the page.', 'error');
     }
 });
 
@@ -228,59 +225,6 @@ export function validateForm(form) {
     return true;
 }
 
-export async function addChore(form) {
-    const categoryId = form.category_id.value;
-    const { data: users, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', form.assignee_id.value)
-        .single();
-
-    if (userError || !users) {
-        throw new Error('Selected assignee does not exist');
-    }
-
-    const choreData = {
-        title: form.choreName.value,
-        category_id: categoryId,
-        assignee_id: form.assignee_id.value,
-        frequency: form.choreFrequency.value,
-        difficulty: parseInt(form.choreDifficulty.value),
-        priority: form.chorePriority.value,
-        time_of_day: form.timeOfDay.value,
-        seasonal_schedule: form.seasonalSchedule.value,
-        due_date: form.choreDueDate.value,
-        points: calculatePoints(form.choreDifficulty.value, form.chorePriority.value)
-    };
-
-    const { error } = await supabase.from('chores').insert(choreData);
-    if (error) throw error;
-}
-
-// Chore Management
-export function createChoreHTML(chore) {
-    return `
-        <div class="chore-item bg-gray-800 rounded-lg p-4 mb-4">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="text-lg font-semibold">${chore.title}</h3>
-                    <p class="text-sm text-gray-400">Category: ${chore.category_name || 'Unknown'}</p>
-                    <p class="text-sm text-gray-400">Assigned to: ${chore.assignee_name || 'Unknown'}</p>
-                    <p class="text-sm text-gray-400">Due: ${chore.due_date ? new Date(chore.due_date).toLocaleDateString() : 'No due date'}</p>
-                    <div class="flex gap-2 mt-2">
-                        <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-500 text-xs">${chore.priority}</span>
-                        <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs">Difficulty: ${chore.difficulty}</span>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="markChoreComplete('${chore.id}')" class="px-3 py-1 rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">Complete</button>
-                    <button onclick="skipChore('${chore.id}')" class="px-3 py-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30">Skip</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 export async function updateChoreList() {
     try {
         const { data: chores, error } = await supabase
@@ -305,6 +249,18 @@ export async function updateChoreList() {
             return;
         }
         
+        choreList.innerHTML = chores.map(chore => `
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                    <input type="checkbox" id="chore-${chore.id}" ${chore.completed ? 'checked' : ''}>
+                    <label for="chore-${chore.id}" class="ml-2">${chore.title}</label>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="markChoreComplete('${chore.id}')" class="px-3 py-1 rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">Complete</button>
+                    <button onclick="skipChore('${chore.id}')" class="px-3 py-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30">Skip</button>
+                </div>
+            </div>
+        `).join('');
     } catch (error) {
         console.error('Error updating chore list:', error);
     }
@@ -326,17 +282,23 @@ export async function markChoreComplete(choreId) {
 }
 
 export async function skipChore(choreId) {
-    const supabase = initializeSupabase();
     try {
+        const supabase = getSupabase();
         const { error } = await supabase
             .from('chores')
-            .update({ skipped: true })
+            .update({ 
+                skipped: true,
+                skipped_at: new Date().toISOString(),
+                skip_reason: document.getElementById('skipReason')?.value
+            })
             .eq('id', choreId);
 
         if (error) throw error;
-        updateChoreList(supabase);
+        await updateChoreList();
+        showNotification('Chore skipped', 'info');
     } catch (error) {
         console.error('Error skipping chore:', error);
+        showNotification('Error skipping chore', 'error');
     }
 }
 
@@ -388,6 +350,7 @@ export async function deleteChore(choreId) {
 // User Management
 export async function populateCategories() {
     try {
+        const supabase = getSupabase();
         const { data: categories, error } = await supabase
             .from('categories')
             .select('*');
