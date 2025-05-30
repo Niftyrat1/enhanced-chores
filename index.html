@@ -259,6 +259,23 @@
                 align-items: center;
             }
 
+            /* Filter styles */
+            .filters-container {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+
+            .filter-group {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .filter-group select {
+                width: 100%;
+            }
+
             .chore-actions {
                 display: flex;
                 gap: 0.5rem;
@@ -443,23 +460,23 @@
                 <section class="bg-gray-800 rounded-lg p-6">
                     <h2 class="text-2xl font-bold mb-4">📋 Chores List</h2>
                     <div class="mt-4">
-                        <div class="flex flex-wrap gap-4">
-                            <div class="flex-1">
+                        <div class="filters-container">
+                            <div class="filter-group">
                                 <select id="timeFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="all">All Time</option>
                                 </select>
                             </div>
-                            <div class="flex-1">
+                            <div class="filter-group">
                                 <select id="categoryFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="">All Categories</option>
                                 </select>
                             </div>
-                            <div class="flex-1">
+                            <div class="filter-group">
                                 <select id="statusFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="">All Statuses</option>
                                 </select>
                             </div>
-                            <div class="flex-1">
+                            <div class="filter-group">
                                 <select id="assigneeFilter" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:border-primary">
                                     <option value="">All Assignees</option>
                                 </select>
