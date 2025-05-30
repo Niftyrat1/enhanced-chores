@@ -1,29 +1,17 @@
 // Imports
 import { createClient } from '@supabase/supabase-js';
-import './config/supabase.js';
+import { supabase } from './config/supabase.js';
 
-// Environment Configuration
+// Weather API configuration
 const ENV = {
-    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
-// Check if required environment variables are set
-if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
-    throw new Error('Supabase environment variables are not configured');
-}
-
 // Initialize Supabase
-let supabaseClient = null;
+export const initializeSupabase = () => supabase;
 
-export function initializeSupabase() {
-    if (!supabaseClient) {
-        // Initialize Supabase client
-        supabaseClient = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
-    }
-    return supabaseClient;
-}
+// Get Supabase client instance
+export const getSupabase = () => supabase;
 
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -141,13 +129,12 @@ export async function initializeUI() {
 
 // Event Listeners
 export function setupEventListeners() {
-    const supabase = initializeSupabase();
     // Add chore form submission
     const addChoreForm = document.getElementById('addChoreForm');
     if (addChoreForm) {
         addChoreForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await handleAddChoreClick(supabase, e);
+            await handleAddChoreClick(e);
         });
     }
 
@@ -155,29 +142,28 @@ export function setupEventListeners() {
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
     if (categoryFilter) {
-        categoryFilter.addEventListener('change', () => updateChoreList(supabase));
+        categoryFilter.addEventListener('change', updateChoreList);
     }
     if (statusFilter) {
-        statusFilter.addEventListener('change', () => updateChoreList(supabase));
+        statusFilter.addEventListener('change', updateChoreList);
     }
 
     // Search
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', () => updateChoreList(supabase));
+        searchInput.addEventListener('input', updateChoreList);
     }
 }
 
 // Form Handling
 export async function handleAddChoreClick(event) {
-    const supabase = initializeSupabase();
     const form = event.target;
     if (!validateForm(form)) return;
 
     try {
-        await addChore(supabase, form);
+        await addChore(form);
         form.reset();
-        updateChoreList(supabase);
+        updateChoreList();
     } catch (error) {
         console.error('Error adding chore:', error);
         alert('Failed to add chore. Please try again.');
@@ -195,7 +181,7 @@ export function validateForm(form) {
     return true;
 }
 
-export async function addChore(supabase, form) {
+export async function addChore(form) {
     const categoryId = form.categoryId.value;
     const { data: users, error: userError } = await supabase
         .from('users')
@@ -226,7 +212,6 @@ export async function addChore(supabase, form) {
 
 // Chore Management
 export async function updateChoreList() {
-    const supabase = initializeSupabase();
     try {
         const { data: chores, error } = await supabase
             .from('chores')

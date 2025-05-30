@@ -18,12 +18,15 @@
     window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 
     // Initialize app
-    import { initializeTheme, initializeUI, setupEventListeners, populateAssignees } from './src/app.js';
+    import { initializeTheme, initializeUI, setupEventListeners, populateAssignees, getSupabase } from './src/app.js';
     
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', async () => {
         // Initialize theme first
         await initializeTheme();
+        
+        // Initialize Supabase
+        const supabase = getSupabase();
         
         // Then initialize UI and event listeners
         await initializeUI();
