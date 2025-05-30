@@ -29,9 +29,26 @@ window.addEventListener('DOMContentLoaded', async () => {
         await updateChoreList();
     } catch (error) {
         console.error('Error initializing application:', error);
-        showNotification('Error initializing application. Please refresh the page.', 'error');
+        alert('Error initializing application. Please refresh the page.');
     }
 });
+
+// Notification Functions
+export function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+        type === 'error' ? 'bg-red-500 text-white' : 
+        type === 'success' ? 'bg-green-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
 
 // Theme initialization
 export function initializeTheme() {
@@ -168,7 +185,8 @@ export function setupEventListeners() {
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
     const assigneeFilter = document.getElementById('assigneeFilter');
-    
+
+    // Add event listeners for filters
     if (categoryFilter) {
         categoryFilter.addEventListener('change', updateChoreList);
     }
@@ -242,7 +260,12 @@ export function validateForm(form) {
 
 export async function updateChoreList() {
     try {
-        const { data: chores, error } = await supabase
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const assigneeFilter = document.getElementById('assigneeFilter');
+
+        // Build base query
+        let query = supabase
             .from('chores')
             .select(`
                 id,
@@ -257,6 +280,19 @@ export async function updateChoreList() {
                 categories (name),
                 users (name)
             `);
+
+        // Apply filters if they exist and have values
+        if (categoryFilter && categoryFilter.value) {
+            query = query.eq('category_id', categoryFilter.value);
+        }
+        if (statusFilter && statusFilter.value) {
+            query = query.eq('status', statusFilter.value);
+        }
+        if (assigneeFilter && assigneeFilter.value) {
+            query = query.eq('assignee_id', assigneeFilter.value);
+        }
+
+        const { data: chores, error } = await query;
 
         if (error) throw error;
 
