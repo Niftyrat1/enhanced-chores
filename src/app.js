@@ -79,6 +79,12 @@ export async function initializeUI() {
             searchInput.addEventListener('input', updateChoreList);
         }
 
+        // Initialize assignee filter
+        if (assigneeFilter) {
+            assigneeFilter.value = '';
+            assigneeFilter.addEventListener('change', updateChoreList);
+        }
+
         // Initialize tabs
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -172,6 +178,9 @@ export function setupEventListeners() {
     if (assigneeFilter) {
         assigneeFilter.addEventListener('change', updateChoreList);
     }
+    if (assigneeFilter) {
+        assigneeFilter.addEventListener('change', updateChoreList);
+    }
 
     // Search
     const searchInput = document.getElementById('searchInput');
@@ -261,16 +270,18 @@ export async function updateChoreList() {
         }
 
         // Debug individual chores
-        chores.forEach((chore, index) => {
-            console.log(`Chore ${index + 1}:`, {
-                id: chore.id,
-                title: chore.title,
-                category_id: chore.category_id,
-                assignee_id: chore.assignee_id,
-                category: chore.categories,
-                user: chore.users
+        if (chores) {
+            chores.forEach((chore, index) => {
+                console.log(`Chore ${index + 1}:`, {
+                    id: chore.id,
+                    title: chore.title,
+                    category_id: chore.category_id,
+                    assignee_id: chore.assignee_id,
+                    category: chore.categories,
+                    user: chore.users
+                });
             });
-        });
+        }
 
         choreList.innerHTML = chores.map(chore => `
             <div class="flex justify-between items-center mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
