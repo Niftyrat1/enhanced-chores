@@ -18,7 +18,7 @@
     window.VITE_WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 
     // Initialize app
-    import { initializeTheme, initializeUI, setupEventListeners, populateAssignees, getSupabase } from './src/app.js';
+    import { initializeTheme, initializeUI, setupEventListeners, populateAssignees, getSupabase, openModal, closeModal } from './src/app.js';
     
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', async () => {
@@ -33,6 +33,10 @@
         await populateAssignees();
         await setupEventListeners();
     });
+
+    // Make modal functions available globally
+    window.openModal = openModal;
+    window.closeModal = closeModal;
 </script>
 
         <!-- Custom styles -->

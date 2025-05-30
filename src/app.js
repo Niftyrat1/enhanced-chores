@@ -7,9 +7,6 @@ const ENV = {
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
-// Initialize Supabase
-export const initializeSupabase = () => supabase;
-
 // Get Supabase client instance
 export const getSupabase = () => supabase;
 
@@ -203,13 +200,27 @@ export async function handleAddChoreClick(event) {
 }
 
 export function validateForm(form) {
-    const requiredFields = ['choreName', 'choreAssignee', 'choreFrequency', 'choreDifficulty', 'chorePriority'];
+    const requiredFields = ['choreName', 'choreAssignee', 'choreFrequency', 'choreDifficulty', 'chorePriority', 'category_id'];
+    
+    // Validate required fields
     for (const field of requiredFields) {
         if (!form[field].value) {
             alert(`Please fill in the ${field.replace('chore', '')} field`);
             return false;
         }
     }
+
+    // Validate UUID fields
+    const uuidFields = ['assignee_id', 'category_id'];
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    
+    for (const field of uuidFields) {
+        if (!uuidRegex.test(form[field].value)) {
+            alert(`Please select a valid ${field.replace('_', ' ')} from the dropdown`);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -468,28 +479,5 @@ export function createAchievementHTML(achievement) {
     `;
 }
 
-// Initialize the application
-window.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Initialize Supabase
-        const supabase = initializeSupabase();
-        
-        // Initialize theme
-        initializeTheme();
-        
-        // Initialize UI
-        await initializeUI(supabase);
-        
-        // Setup event listeners
-        setupEventListeners(supabase);
-    } catch (error) {
-        console.error('Error initializing application:', error);
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
-        errorDiv.setAttribute('role', 'alert');
-        errorDiv.setAttribute('aria-live', 'assertive');
-        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
-        document.body.appendChild(errorDiv);
-    }
-});
+
 
