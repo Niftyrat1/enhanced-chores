@@ -70,7 +70,8 @@ export function initializeTheme() {
 }
 
 // UI Initialization
-export async function initializeUI(supabase) {
+export async function initializeUI() {
+    const supabase = initializeSupabase();
     try {
         // Initialize points display
         const pointsDisplay = document.getElementById('pointsDisplay');
@@ -139,7 +140,8 @@ export async function initializeUI(supabase) {
 }
 
 // Event Listeners
-export function setupEventListeners(supabase) {
+export function setupEventListeners() {
+    const supabase = initializeSupabase();
     // Add chore form submission
     const addChoreForm = document.getElementById('addChoreForm');
     if (addChoreForm) {
@@ -222,7 +224,8 @@ export async function addChore(supabase, form) {
 }
 
 // Chore Management
-export async function updateChoreList(supabase) {
+export async function updateChoreList() {
+    const supabase = initializeSupabase();
     try {
         const { data: chores, error } = await supabase
             .from('chores')
@@ -241,7 +244,8 @@ export async function updateChoreList(supabase) {
     }
 }
 
-export async function markChoreComplete(supabase, choreId) {
+export async function markChoreComplete(choreId) {
+    const supabase = initializeSupabase();
     try {
         const { error } = await supabase
             .from('chores')
@@ -255,7 +259,8 @@ export async function markChoreComplete(supabase, choreId) {
     }
 }
 
-export async function skipChore(supabase, choreId) {
+export async function skipChore(choreId) {
+    const supabase = initializeSupabase();
     try {
         const { error } = await supabase
             .from('chores')
@@ -269,7 +274,8 @@ export async function skipChore(supabase, choreId) {
     }
 }
 
-export async function postponeChore(supabase, choreId, newDate) {
+export async function postponeChore(choreId, newDate) {
+    const supabase = initializeSupabase();
     try {
         const { error } = await supabase
             .from('chores')
@@ -283,7 +289,8 @@ export async function postponeChore(supabase, choreId, newDate) {
     }
 }
 
-export async function deleteChore(supabase, choreId) {
+export async function deleteChore(choreId) {
+    const supabase = initializeSupabase();
     try {
         const { error } = await supabase
             .from('chores')
@@ -298,7 +305,8 @@ export async function deleteChore(supabase, choreId) {
 }
 
 // User Management
-export async function populateAssignees(supabase) {
+export async function populateAssignees() {
+    const supabase = initializeSupabase();
     try {
         const { data: users, error: userError } = await supabase
             .from('users')
