@@ -23,15 +23,6 @@ export function initializeSupabase() {
     return supabase;
 }
 
-// Initialize Supabase
-export function initializeSupabase() {
-    if (!supabase) {
-        // Initialize Supabase client
-        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
-    }
-    return supabase;
-}
-
 // Initialize the application
 window.addEventListener('DOMContentLoaded', async () => {
     try {
