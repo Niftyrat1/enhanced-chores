@@ -76,6 +76,7 @@ export async function initializeUI() {
             searchInput.value = '';
             searchInput.setAttribute('aria-label', 'Search chores');
             searchInput.setAttribute('placeholder', 'Search chores...');
+            searchInput.addEventListener('input', updateChoreList);
         }
 
         // Initialize tabs
@@ -160,11 +161,16 @@ export function setupEventListeners() {
     // Filter changes
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
+    const assigneeFilter = document.getElementById('assigneeFilter');
+    
     if (categoryFilter) {
         categoryFilter.addEventListener('change', updateChoreList);
     }
     if (statusFilter) {
         statusFilter.addEventListener('change', updateChoreList);
+    }
+    if (assigneeFilter) {
+        assigneeFilter.addEventListener('change', updateChoreList);
     }
 
     // Search
@@ -250,14 +256,30 @@ export async function updateChoreList() {
         }
         
         choreList.innerHTML = chores.map(chore => `
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center">
-                    <input type="checkbox" id="chore-${chore.id}" ${chore.completed ? 'checked' : ''}>
-                    <label for="chore-${chore.id}" class="ml-2">${chore.title}</label>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="markChoreComplete('${chore.id}')" class="px-3 py-1 rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">Complete</button>
-                    <button onclick="skipChore('${chore.id}')" class="px-3 py-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30">Skip</button>
+            <div class="flex justify-between items-center mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div class="flex flex-col">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="chore-${chore.id}" ${chore.completed ? 'checked' : ''} class="mr-2">
+                            <span class="font-medium">${chore.title}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="markChoreComplete('${chore.id}')" class="px-3 py-1 rounded bg-green-500/20 text-green-500 hover:bg-green-500/30">Complete</button>
+                            <button onclick="skipChore('${chore.id}')" class="px-3 py-1 rounded bg-red-500/20 text-red-500 hover:bg-red-500/30">Skip</button>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        <div class="flex items-center gap-2">
+                            <span><i class="fas fa-folder text-blue-500"></i> ${chore.categories?.[0]?.name || 'No Category'}</span>
+                            <span><i class="fas fa-user text-purple-500"></i> ${chore.users?.[0]?.name || 'Unassigned'}</span>
+                            <span><i class="fas fa-calendar text-yellow-500"></i> ${chore.due_date ? new Date(chore.due_date).toLocaleDateString() : 'No due date'}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-500 text-xs">${chore.priority}</span>
+                            <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs">Difficulty: ${chore.difficulty}</span>
+                            <span class="px-2 py-1 rounded ${chore.completed ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'} text-xs">${chore.completed ? 'Completed' : 'Pending'}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
