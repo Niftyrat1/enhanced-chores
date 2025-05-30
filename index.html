@@ -496,22 +496,26 @@
 </body>
 </html>
 
-        <!-- Achievements tab -->
+        <!-- Application Tabs -->
+        <!-- Achievements Tab -->
         <div id="achievements-tab" class="tab-content">
             <div class="achievements-grid"></div>
         </div>
 
-        <!-- Family tab -->
+        <!-- Family Tab -->
         <div id="family-tab" class="tab-content">
             <div class="family-members"></div>
         </div>
 
-        <!-- Notifications -->
+        <!-- Notifications System -->
         <div id="notifications"></div>
     </div>
+
+    <!-- Points System Configuration -->
     <script>
-        // Points system
+        // Points calculation system
         const POINTS_SYSTEM = {
+            // Frequency multipliers
             frequency: {
                 daily: 1,
                 weekly: 2,
@@ -519,11 +523,13 @@
                 monthly: 4,
                 once: 1
             },
+            // Difficulty multipliers
             difficulty: {
                 easy: 1,
                 medium: 1.5,
                 hard: 2
             },
+            // Priority multipliers
             priority: {
                 low: 1,
                 medium: 2,
@@ -532,10 +538,14 @@
             }
         };
     </script>
+
+    <!-- Database Integration -->
     <!-- Add the Supabase client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Achievement System Configuration -->
     <script>
-        // Achievement thresholds
+        // Achievement thresholds and descriptions
         const ACHIEVEMENTS = {
             'week_warrior': { points: 50, description: 'Complete 50 chores in a week' },
             'clean_streak': { streak: 7, description: 'Complete chores every day for a week' },
