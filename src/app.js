@@ -300,7 +300,22 @@ export async function updateChoreList() {
         const choreList = document.querySelector('.chores-list');
         if (!choreList) return;
 
-        choreList.innerHTML = chores.map(chore => createChoreHTML(chore)).join('');
+        if (!chores || chores.length === 0) {
+            choreList.innerHTML = '<p class="text-gray-400">No chores found</p>';
+            return;
+        }
+        
+        choreList.innerHTML = chores.map(chore => {
+            console.log('Chore data:', {
+                id: chore.id,
+                title: chore.title,
+                category: chore.category_id,
+                assignee: chore.assignee_id,
+                category_name: chore.category_name,
+                assignee_name: chore.assignee_name
+            });
+            return createChoreHTML(chore);
+        }).join('');
     } catch (error) {
         console.error('Error updating chore list:', error);
     }
