@@ -1,4 +1,5 @@
 // Imports
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from './config/supabase.js';
 
 // Environment Configuration
@@ -8,6 +9,7 @@ const ENV = {
     WEATHER_API_KEY: import.meta.env.VITE_WEATHER_API_KEY
 };
 
+// Check if required environment variables are set
 if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
     throw new Error('Supabase environment variables are not configured');
 }
@@ -15,10 +17,48 @@ if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY) {
 // Initialize Supabase
 export function initializeSupabase() {
     if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        // Initialize Supabase client
+        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
     }
     return supabase;
 }
+
+// Initialize Supabase
+export function initializeSupabase() {
+    if (!supabase) {
+        // Initialize Supabase client
+        supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+    }
+    return supabase;
+}
+
+// Initialize the application
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize Supabase
+        const supabase = initializeSupabase();
+        
+        // Initialize theme
+        initializeTheme();
+        
+        // Initialize UI
+        await initializeUI(supabase);
+        
+        // Setup event listeners
+        setupEventListeners(supabase);
+        
+        // Populate assignees
+        await populateAssignees(supabase);
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded';
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.textContent = 'Error initializing application. Please refresh the page.';
+        document.body.appendChild(errorDiv);
+    }
+});
 
 // Theme initialization
 export function initializeTheme() {
