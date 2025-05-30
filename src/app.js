@@ -67,7 +67,7 @@ export async function initializeUI() {
         }
 
         // Initialize assignee select
-        const assigneeSelect = document.getElementById('choreAssignee');
+        const assigneeSelect = document.getElementById('assigned_to');
         if (assigneeSelect) {
             assigneeSelect.innerHTML = '<option value="">Select Assignee</option>';
             const assignees = [
@@ -174,7 +174,7 @@ export async function addChore() {
         const choreData = {
             title: form.choreName.value,
             category: form.choreCategory.value,
-            assignee: form.choreAssignee.value,
+            assigned_to: form.choreAssignee.value,
             frequency: form.choreFrequency.value,
             difficulty: parseInt(form.choreDifficulty.value),
             priority: form.chorePriority.value,
